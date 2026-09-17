@@ -2,17 +2,19 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>図案作成ジェネレーター (色精度＆手動調整機能付き)</title>
+  <!-- スマホ表示に必須のレスポンシブビューポート設定 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>図案作成ジェネレーター (スマホ対応版)</title>
   <style>
     :root {
-      --primary-color: #43302E;
-      --primary-hover: #47382d;
-      --primary-light: #d7eef9;
-      --bg-color: #fbf9f5;
+      --primary-color: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-light: #eef2ff;
+      --bg-color: #f1f5f9;
       --card-bg: #ffffff;
       --border-color: #e2e8f0;
       --border-focus: #cbd5e1;
-      --text-main: #2b2c2f;
+      --text-main: #0f172a;
       --text-muted: #64748b;
       --radius-lg: 16px;
       --radius-md: 10px;
@@ -26,92 +28,89 @@
       font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       max-width: 1240px;
       margin: 0 auto;
-      padding: 32px 20px;
+      padding: 16px 12px; /* スマホ用に余白を小さく調整 */
       background-color: var(--bg-color);
       color: var(--text-main);
       -webkit-font-smoothing: antialiased;
+      touch-action: manipulation;
     }
 
     h1 {
-      font-size: 1.6rem;
+      font-size: 1.25rem;
       font-weight: 700;
       letter-spacing: -0.02em;
-      margin-bottom: 24px;
+      margin: 0 0 16px 0;
       color: var(--text-main);
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
     }
 
     .badge {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 500;
       color: var(--primary-color);
       background-color: var(--primary-light);
-      padding: 4px 10px;
+      padding: 3px 8px;
       border-radius: 9999px;
-      letter-spacing: normal;
     }
 
     /* コントロールパネル */
     .control-panel {
       background: var(--card-bg);
-      padding: 24px;
+      padding: 16px;
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-md);
       border: 1px solid var(--border-color);
-      margin-bottom: 24px;
+      margin-bottom: 16px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 14px;
       align-items: end;
     }
 
-    .control-group { display: flex; flex-direction: column; gap: 8px; }
-    label { font-size: 0.85rem; font-weight: 600; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; }
-    .val-label { font-weight: 700; color: var(--primary-color); font-size: 0.9rem; }
+    .control-group { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; }
+    .val-label { font-weight: 700; color: var(--primary-color); font-size: 0.85rem; }
     
     input[type="file"] {
-      font-size: 0.8rem;
-      padding: 7px 10px;
+      font-size: 0.75rem;
+      padding: 6px;
       border: 1px dashed var(--border-focus);
       border-radius: var(--radius-sm);
       background: #f8fafc;
       color: var(--text-muted);
       cursor: pointer;
-      transition: border-color 0.2s;
+      width: 100%;
     }
-    input[type="file"]:hover { border-color: var(--primary-color); }
 
     input[type="range"] {
       accent-color: var(--primary-color);
       cursor: pointer;
-      height: 6px;
+      height: 8px;
       background: #e2e8f0;
-      border-radius: 3px;
+      border-radius: 4px;
+      width: 100%;
     }
 
     select {
-      padding: 9px 12px;
+      padding: 8px 10px;
       border: 1px solid var(--border-color);
       border-radius: var(--radius-sm);
       background-color: white;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--text-main);
       cursor: pointer;
-      transition: border-color 0.2s, box-shadow 0.2s;
       outline: none;
-    }
-    select:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+      width: 100%;
     }
 
     .btn {
-      padding: 10px 18px;
+      padding: 10px 14px;
       border-radius: var(--radius-sm);
       font-weight: 600;
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       cursor: pointer;
       border: none;
       transition: all 0.2s ease;
@@ -119,6 +118,7 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
+      width: 100%;
     }
 
     .btn-primary { 
@@ -126,10 +126,9 @@
       color: white; 
       box-shadow: 0 2px 4px rgba(99, 102, 241, 0.25);
     }
-    .btn-primary:hover { 
+    .btn-primary:active { 
       background-color: var(--primary-hover); 
-      box-shadow: 0 4px 8px rgba(99, 102, 241, 0.35);
-      transform: translateY(-1px);
+      transform: scale(0.98);
     }
 
     .btn-secondary {
@@ -137,88 +136,89 @@
       color: var(--text-main);
       border: 1px solid var(--border-color);
     }
-    .btn-secondary:hover:not(:disabled) { 
-      background-color: #f8fafc; 
-      border-color: var(--border-focus);
-    }
     .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
 
     .history-controls {
       display: flex;
       gap: 6px;
-      margin-top: 2px;
     }
-    .history-controls .btn { flex: 1; padding: 6px 8px; font-size: 0.8rem; }
+    .history-controls .btn { flex: 1; padding: 8px 4px; font-size: 0.75rem; }
 
     /* メインコンテンツ配置 */
     .main-container {
       display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 24px;
+      grid-template-columns: 1fr 320px;
+      gap: 16px;
       align-items: start;
     }
 
-    @media (max-width: 900px) {
+    /* スマホ画面向けのレイアウト切り替え */
+    @media (max-width: 860px) {
       .main-container { grid-template-columns: 1fr; }
+      .control-panel { grid-template-columns: 1fr 1fr; }
+      .control-group-full { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 480px) {
+      .control-panel { grid-template-columns: 1fr; }
     }
 
     .canvas-card {
       background: var(--card-bg);
-      padding: 24px;
+      padding: 16px;
       border-radius: var(--radius-lg);
       border: 1px solid var(--border-color);
       box-shadow: var(--shadow-md);
       display: flex;
       flex-direction: column;
       align-items: center;
+      width: 100%;
     }
 
     .canvas-wrapper {
       position: relative;
       overflow: auto;
       max-width: 100%;
+      max-height: 60vh;
       border-radius: var(--radius-sm);
       box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
       cursor: crosshair;
       user-select: none;
       background-color: #ffffff;
+      -webkit-overflow-scrolling: touch;
     }
 
     canvas { display: block; }
 
     .canvas-hint {
-      margin-top: 14px;
-      font-size: 0.8rem;
+      margin-top: 10px;
+      font-size: 0.75rem;
       color: var(--text-muted);
       text-align: center;
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
 
     /* パレットコンテナ */
     .palette-card {
       background: var(--card-bg);
-      padding: 24px;
+      padding: 16px;
       border-radius: var(--radius-lg);
       border: 1px solid var(--border-color);
       box-shadow: var(--shadow-md);
-      max-height: 720px;
+      max-height: 500px;
       display: flex;
       flex-direction: column;
     }
 
     .palette-card h3 {
-      font-size: 1.05rem;
+      font-size: 0.95rem;
       font-weight: 700;
       margin: 0 0 4px 0;
     }
 
     .palette-card .sub-text {
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       color: var(--text-muted);
-      margin-bottom: 16px;
-      line-height: 1.4;
+      margin-bottom: 12px;
     }
 
     .palette-list {
@@ -227,26 +227,16 @@
       padding-right: 4px;
     }
 
-    .palette-list::-webkit-scrollbar { width: 6px; }
-    .palette-list::-webkit-scrollbar-track { background: transparent; }
-    .palette-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-
     .color-item {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 10px 12px;
+      gap: 10px;
+      padding: 8px 10px;
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       background: #ffffff;
-      transition: all 0.15s ease;
       cursor: pointer;
-    }
-
-    .color-item:hover {
-      border-color: var(--border-focus);
-      transform: translateX(2px);
     }
 
     .color-item.selected {
@@ -256,28 +246,26 @@
     }
 
     .color-box {
-      width: 42px;
-      height: 42px;
+      width: 36px;
+      height: 36px;
       border-radius: var(--radius-sm);
       border: 1px solid rgba(0,0,0,0.1);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: bold;
       flex-shrink: 0;
-      box-shadow: var(--shadow-sm);
     }
 
-    .color-info { flex-grow: 1; font-size: 0.8rem; }
-    .color-info strong { font-size: 0.85rem; color: var(--text-main); }
-    .color-count { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+    .color-info { flex-grow: 1; font-size: 0.75rem; }
+    .color-info strong { font-size: 0.8rem; color: var(--text-main); }
 
     .dmc-select {
       width: 100%;
-      margin-top: 6px;
-      font-size: 0.78rem;
-      padding: 4px 6px;
+      margin-top: 4px;
+      font-size: 0.75rem;
+      padding: 4px;
       border-radius: 4px;
       border: 1px solid var(--border-color);
       background-color: #fff;
@@ -287,18 +275,19 @@
 <body>
 
   <h1>
-    🎨 図案作成ジェネレーター 
+    🎨 刺繍図案ジェネレーター 
+    <span class="badge">スマホ対応版</span>
   </h1>
 
   <div class="control-panel">
-    <div class="control-group">
+    <div class="control-group control-group-full">
       <label for="upload">1. 画像を選択</label>
       <input type="file" id="upload" accept="image/*">
     </div>
 
     <div class="control-group">
       <label for="gridWidth">2. 横マス数 <span id="gridWidthVal" class="val-label">35</span></label>
-      <input type="range" id="gridWidth" min="10" max="100" value="35">
+      <input type="range" id="gridWidth" min="10" max="80" value="35">
     </div>
 
     <div class="control-group">
@@ -307,22 +296,22 @@
     </div>
 
     <div class="control-group">
-      <label for="colorMetric">4. 色判定計算モード</label>
+      <label for="colorMetric">4. 色判定計算</label>
       <select id="colorMetric">
-        <option value="lab" selected>CIE Lab (人間の目に近い自然さ)</option>
-        <option value="rgb">RGB (標準的)</option>
+        <option value="lab" selected>CIE Lab (自然)</option>
+        <option value="rgb">RGB (標準)</option>
       </select>
     </div>
 
     <div class="control-group">
       <label for="colorMethod">5. 色抽出ロジック</label>
       <select id="colorMethod">
-        <option value="kmeans" selected>K-Means (滑らかな減色)</option>
+        <option value="kmeans" selected>K-Means (滑らか)</option>
         <option value="frequency">頻出色 (輪郭重視)</option>
       </select>
     </div>
 
-    <div class="control-group" style="justify-content: flex-end;">
+    <div class="control-group control-group-full">
       <button id="downloadBtn" class="btn btn-primary">図案を保存 (PNG)</button>
     </div>
   </div>
@@ -331,18 +320,19 @@
     <div class="canvas-card">
       <div class="canvas-wrapper">
         <canvas id="canvas"></canvas>
-         <div class="history-controls">
-          <button id="undoBtn" class="btn btn-secondary" disabled>↩ 元に戻す</button>
+         <div class="history-controls" style="margin-top:4px;">
+          <button id="undoBtn" class="btn btn-secondary" disabled>↩ 戻す</button>
           <button id="redoBtn" class="btn btn-secondary" disabled>↪ やり直し</button>
          </div>
+
       </div>
-      <div class="canvas-hint">💡 マス目をドラッグまたはクリックすると、選択中の色で塗り替えることができます</div>
+      <div class="canvas-hint">💡 マス目をタップ・ドラッグで塗り替えることができます</div>
     </div>
 
     <div class="palette-card">
       <h3>DMCカラーパレット</h3>
-      <div class="sub-text">色を変更すると図案へ即座に反映されます。選択中の色でマス目を塗れます。</div>
-      <div id="paletteList" class="palette-list">画像を選択するとカラーリストが表示されます</div>
+      <div class="sub-text">タップして選択中の色を変更したり、パレットの色をタップして切り替えます。</div>
+      <div id="paletteList" class="palette-list">画像を選択すると表示されます</div>
     </div>
   </div>
 
@@ -436,7 +426,7 @@
     let activePalette = [];
     let selectedPaletteIndex = 0;
     let currentGridX = 35, currentGridY = 35;
-    const cellSize = 18;
+    const cellSize = 16;
 
     let history = [];
     let currentIndex = -1;
@@ -650,7 +640,7 @@
 
           const brightness = (item.dmc.r * 299 + item.dmc.g * 587 + item.dmc.b * 114) / 1000;
           ctx.fillStyle = brightness > 125 ? '#000000' : '#ffffff';
-          ctx.font = '500 11px sans-serif';
+          ctx.font = '500 10px sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(item.symbol, x * cellSize + cellSize / 2, y * cellSize + cellSize / 2);
@@ -674,11 +664,19 @@
       }
     }
 
+    function getCanvasCoordinates(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: Math.floor((clientX - rect.left) / cellSize),
+        y: Math.floor((clientY - rect.top) / cellSize)
+      };
+    }
+
     function paintCell(e) {
       if (!gridMatrix.length || !activePalette.length) return;
-      const rect = canvas.getBoundingClientRect();
-      const x = Math.floor((e.clientX - rect.left) / cellSize);
-      const y = Math.floor((e.clientY - rect.top) / cellSize);
+      const { x, y } = getCanvasCoordinates(e);
 
       if (x >= 0 && x < currentGridX && y >= 0 && y < currentGridY) {
         const targetCode = activePalette[selectedPaletteIndex].code;
@@ -691,24 +689,36 @@
       }
     }
 
-    canvas.addEventListener('mousedown', (e) => {
+    // マウスとタッチ両対応イベントハンドラ
+    const startPainting = (e) => {
       isMouseDown = true;
       hasPaintedInCurrentStroke = false;
       paintCell(e);
-    });
+    };
 
-    canvas.addEventListener('mousemove', (e) => {
-      if (isMouseDown) paintCell(e);
-    });
+    const drawPainting = (e) => {
+      if (isMouseDown) {
+        if (e.touches) e.preventDefault(); // タッチ時の画面スクロール防止
+        paintCell(e);
+      }
+    };
 
-    window.addEventListener('mouseup', () => {
+    const stopPainting = () => {
       if (isMouseDown) {
         isMouseDown = false;
         if (hasPaintedInCurrentStroke) {
           saveState();
         }
       }
-    });
+    };
+
+    canvas.addEventListener('mousedown', startPainting);
+    canvas.addEventListener('mousemove', drawPainting);
+    window.addEventListener('mouseup', stopPainting);
+
+    canvas.addEventListener('touchstart', startPainting, { passive: false });
+    canvas.addEventListener('touchmove', drawPainting, { passive: false });
+    canvas.addEventListener('touchend', stopPainting);
 
     function updatePaletteUI() {
       paletteList.innerHTML = '';
@@ -738,7 +748,7 @@
           </div>
           <div class="color-info">
             <strong>記号 [ ${item.symbol} ]</strong>
-            <div class="color-count">使用数: <strong>${count}</strong> マス</div>
+            <div style="color:var(--text-muted);">使用数: <strong>${count}</strong> マス</div>
             <select class="dmc-select" onchange="changePaletteDmc(${idx}, this.value)">
               ${optionsHtml}
             </select>
