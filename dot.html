@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>図案作成ジェネレーター (色精度＆手動調整機能付き)</title>
+  <style>
+    :root {
+      --primary-color: #43302E;
+      --primary-hover: #47382d;
+      --primary-light: #d7eef9;
+      --bg-color: #fbf9f5;
+      --card-bg: #ffffff;
+      --border-color: #e2e8f0;
+      --border-focus: #cbd5e1;
+      --text-main: #2b2c2f;
+      --text-muted: #64748b;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -4px rgba(0,0,0,0.02);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 32px 20px;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--primary-color);
+      background-color: var(--primary-light);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      letter-spacing: normal;
+    }
+
+    /* コントロールパネル */
+    .control-panel {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      margin-bottom: 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 20px;
+      align-items: end;
+    }
+
+    .control-group { display: flex; flex-direction: column; gap: 8px; }
+    label { font-size: 0.85rem; font-weight: 600; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; }
+    .val-label { font-weight: 700; color: var(--primary-color); font-size: 0.9rem; }
+    
+    input[type="file"] {
+      font-size: 0.8rem;
+      padding: 7px 10px;
+      border: 1px dashed var(--border-focus);
+      border-radius: var(--radius-sm);
+      background: #f8fafc;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    input[type="file"]:hover { border-color: var(--primary-color); }
+
+    input[type="range"] {
+      accent-color: var(--primary-color);
+      cursor: pointer;
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 3px;
+    }
+
+    select {
+      padding: 9px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background-color: white;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+    select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary { 
+      background-color: var(--primary-color); 
+      color: white; 
+      box-shadow: 0 2px 4px rgba(99, 102, 241, 0.25);
+    }
+    .btn-primary:hover { 
+      background-color: var(--primary-hover); 
+      box-shadow: 0 4px 8px rgba(99, 102, 241, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background-color: #ffffff;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+    .btn-secondary:hover:not(:disabled) { 
+      background-color: #f8fafc; 
+      border-color: var(--border-focus);
+    }
+    .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .history-controls {
+      display: flex;
+      gap: 6px;
+      margin-top: 2px;
+    }
+    .history-controls .btn { flex: 1; padding: 6px 8px; font-size: 0.8rem; }
+
+    /* メインコンテンツ配置 */
+    .main-container {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .main-container { grid-template-columns: 1fr; }
+    }
+
+    .canvas-card {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .canvas-wrapper {
+      position: relative;
+      overflow: auto;
+      max-width: 100%;
+      border-radius: var(--radius-sm);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+      cursor: crosshair;
+      user-select: none;
+      background-color: #ffffff;
+    }
+
+    canvas { display: block; }
+
+    .canvas-hint {
+      margin-top: 14px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: center;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* パレットコンテナ */
+    .palette-card {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-md);
+      max-height: 720px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .palette-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0 0 4px 0;
+    }
+
+    .palette-card .sub-text {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    .palette-list {
+      overflow-y: auto;
+      flex-grow: 1;
+      padding-right: 4px;
+    }
+
+    .palette-list::-webkit-scrollbar { width: 6px; }
+    .palette-list::-webkit-scrollbar-track { background: transparent; }
+    .palette-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+    .color-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      margin-bottom: 10px;
+      background: #ffffff;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+
+    .color-item:hover {
+      border-color: var(--border-focus);
+      transform: translateX(2px);
+    }
+
+    .color-item.selected {
+      border-color: var(--primary-color);
+      background-color: var(--primary-light);
+      box-shadow: 0 0 0 1px var(--primary-color);
+    }
+
+    .color-box {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: bold;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .color-info { flex-grow: 1; font-size: 0.8rem; }
+    .color-info strong { font-size: 0.85rem; color: var(--text-main); }
+    .color-count { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+    .dmc-select {
+      width: 100%;
+      margin-top: 6px;
+      font-size: 0.78rem;
+      padding: 4px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      background-color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>
+    🎨 図案作成ジェネレーター 
+  </h1>
+
+  <div class="control-panel">
+    <div class="control-group">
+      <label for="upload">1. 画像を選択</label>
+      <input type="file" id="upload" accept="image/*">
+    </div>
+
+    <div class="control-group">
+      <label for="gridWidth">2. 横マス数 <span id="gridWidthVal" class="val-label">35</span></label>
+      <input type="range" id="gridWidth" min="10" max="100" value="35">
+    </div>
+
+    <div class="control-group">
+      <label for="colorCount">3. 最大色数 <span id="colorCountVal" class="val-label">12</span></label>
+      <input type="range" id="colorCount" min="2" max="24" value="12">
+    </div>
+
+    <div class="control-group">
+      <label for="colorMetric">4. 色判定計算モード</label>
+      <select id="colorMetric">
+        <option value="lab" selected>CIE Lab (人間の目に近い自然さ)</option>
+        <option value="rgb">RGB (標準的)</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label for="colorMethod">5. 色抽出ロジック</label>
+      <select id="colorMethod">
+        <option value="kmeans" selected>K-Means (滑らかな減色)</option>
+        <option value="frequency">頻出色 (輪郭重視)</option>
+      </select>
+    </div>
+
+    <div class="control-group" style="justify-content: flex-end;">
+      <button id="downloadBtn" class="btn btn-primary">図案を保存 (PNG)</button>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <div class="canvas-card">
+      <div class="canvas-wrapper">
+        <canvas id="canvas"></canvas>
+         <div class="history-controls">
+          <button id="undoBtn" class="btn btn-secondary" disabled>↩ 元に戻す</button>
+          <button id="redoBtn" class="btn btn-secondary" disabled>↪ やり直し</button>
+         </div>
+      </div>
+      <div class="canvas-hint">💡 マス目をドラッグまたはクリックすると、選択中の色で塗り替えることができます</div>
+    </div>
+
+    <div class="palette-card">
+      <h3>DMCカラーパレット</h3>
+      <div class="sub-text">色を変更すると図案へ即座に反映されます。選択中の色でマス目を塗れます。</div>
+      <div id="paletteList" class="palette-list">画像を選択するとカラーリストが表示されます</div>
+    </div>
+  </div>
+
+  <script>
+    const SYMBOLS = ["★", "◆", "●", "▲", "♣", "♥", "♠", "♦", "■", "✖", "★", "▼", "✚", "✱", "✿", "✦", "✪", "⊕", "⊗", "☣", "☪", "☸", "☯", "⚡"];
+
+    const DMC_COLORS = [
+      { code: "310", r: 0, g: 0, b: 0, name: "Black" },
+      { code: "BLANC", r: 255, g: 255, b: 255, name: "White" },
+      { code: "ECRU", r: 240, g: 234, b: 218, name: "Ecru" },
+      { code: "666", r: 227, g: 29, b: 66, name: "Bright Red" },
+      { code: "321", r: 199, g: 0, b: 57, name: "Red" },
+      { code: "815", r: 119, g: 0, b: 34, name: "Garnet Medium" },
+      { code: "602", r: 227, g: 49, b: 112, name: "Cranberry Medium" },
+      { code: "605", r: 255, g: 194, b: 214, name: "Cranberry Very Light" },
+      { code: "963", r: 255, g: 215, b: 220, name: "Dusty Rose" },
+      { code: "743", r: 255, g: 202, b: 58, name: "Yellow Medium" },
+      { code: "745", r: 255, g: 233, b: 161, name: "Yellow Pale Light" },
+      { code: "972", r: 249, g: 171, b: 0, name: "Canary Yellow Deep" },
+      { code: "740", r: 255, g: 123, b: 0, name: "Tangerine" },
+      { code: "900", r: 209, g: 60, b: 0, name: "Burnt Orange Dark" },
+      { code: "702", r: 70, g: 160, b: 70, name: "Kelly Green" },
+      { code: "704", r: 115, g: 198, b: 58, name: "Chartreuse Bright" },
+      { code: "699", r: 0, g: 100, b: 40, name: "Green" },
+      { code: "986", r: 43, g: 78, b: 42, name: "Forest Green" },
+      { code: "911", r: 0, g: 153, b: 102, name: "Emerald Green" },
+      { code: "959", r: 106, g: 208, b: 188, name: "Seagreen Medium" },
+      { code: "820", r: 16, g: 44, b: 87, name: "Royal Blue Very Dark" },
+      { code: "796", r: 17, g: 68, b: 129, name: "Royal Blue Dark" },
+      { code: "798", r: 74, g: 110, b: 166, name: "Delft Blue Dark" },
+      { code: "800", r: 192, g: 216, b: 235, name: "Delft Blue Pale" },
+      { code: "996", r: 48, g: 181, b: 227, name: "Electric Blue" },
+      { code: "550", r: 92, g: 24, b: 107, name: "Violet Very Dark" },
+      { code: "553", r: 163, g: 90, b: 162, name: "Violet Medium" },
+      { code: "209", r: 202, g: 148, b: 201, name: "Lavender Dark" },
+      { code: "433", r: 122, g: 69, b: 34, name: "Brown Medium" },
+      { code: "436", r: 187, g: 125, b: 75, name: "Tan Medium" },
+      { code: "437", r: 216, g: 161, b: 110, name: "Tan Light" },
+      { code: "938", r: 54, g: 31, b: 14, name: "Coffee Brown" },
+      { code: "413", r: 86, g: 86, b: 86, name: "Pewter Gray Dark" },
+      { code: "414", r: 140, g: 140, b: 140, name: "Steel Gray Dark" },
+      { code: "762", r: 228, g: 228, b: 228, name: "Pearl Gray Light" },
+      { code: "318", r: 171, g: 171, b: 171, name: "Light Steel Gray" },
+      { code: "3799", r: 42, g: 44, b: 46, name: "Pewter Gray Very Dark" },
+      { code: "3865", r: 249, g: 247, b: 241, name: "Winter White" }
+    ];
+
+    function rgbToLab(r, g, b) {
+      let r_ = r / 255, g_ = g / 255, b_ = b / 255;
+      r_ = r_ > 0.04045 ? Math.pow((r_ + 0.055) / 1.055, 2.4) : r_ / 12.92;
+      g_ = g_ > 0.04045 ? Math.pow((g_ + 0.055) / 1.055, 2.4) : g_ / 12.92;
+      b_ = b_ > 0.04045 ? Math.pow((b_ + 0.055) / 1.055, 2.4) : b_ / 12.92;
+
+      let x = (r_ * 0.4124 + g_ * 0.3576 + b_ * 0.1805) * 100;
+      let y = (r_ * 0.2126 + g_ * 0.7152 + b_ * 0.0722) * 100;
+      let z = (r_ * 0.0193 + g_ * 0.1192 + b_ * 0.9505) * 100;
+
+      x /= 95.047; y /= 100.000; z /= 108.883;
+      x = x > 0.008856 ? Math.cbrt(x) : (7.787 * x) + (16 / 116);
+      y = y > 0.008856 ? Math.cbrt(y) : (7.787 * y) + (16 / 116);
+      z = z > 0.008856 ? Math.cbrt(z) : (7.787 * z) + (16 / 116);
+
+      return [(116 * y) - 16, 500 * (x - y), 200 * (y - z)];
+    }
+
+    DMC_COLORS.forEach(c => c.lab = rgbToLab(c.r, c.g, c.b));
+
+    function getColorDistance(r1, g1, b1, lab1, dmcColor, metric) {
+      if (metric === 'lab') {
+        const [l2, a2, b2] = dmcColor.lab;
+        return Math.hypot(lab1[0] - l2, lab1[1] - a2, lab1[2] - b2);
+      } else {
+        return Math.hypot(r1 - dmcColor.r, g1 - dmcColor.g, b1 - dmcColor.b);
+      }
+    }
+
+    const upload = document.getElementById('upload');
+    const gridWidthInput = document.getElementById('gridWidth');
+    const colorCountInput = document.getElementById('colorCount');
+    const colorMetricInput = document.getElementById('colorMetric');
+    const colorMethodInput = document.getElementById('colorMethod');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const paletteList = document.getElementById('paletteList');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const undoBtn = document.getElementById('undoBtn');
+    const redoBtn = document.getElementById('redoBtn');
+
+    let loadedImg = null;
+    let gridMatrix = [];
+    let activePalette = [];
+    let selectedPaletteIndex = 0;
+    let currentGridX = 35, currentGridY = 35;
+    const cellSize = 18;
+
+    let history = [];
+    let currentIndex = -1;
+    let isMouseDown = false;
+    let hasPaintedInCurrentStroke = false;
+
+    function saveState() {
+      if (!gridMatrix.length) return;
+
+      const state = {
+        gridMatrix: JSON.parse(JSON.stringify(gridMatrix)),
+        activePalette: JSON.parse(JSON.stringify(activePalette)),
+        currentGridX,
+        currentGridY
+      };
+
+      if (currentIndex < history.length - 1) {
+        history = history.slice(0, currentIndex + 1);
+      }
+
+      history.push(state);
+      currentIndex++;
+      updateHistoryButtons();
+    }
+
+    function restoreState(index) {
+      if (index < 0 || index >= history.length) return;
+      const state = history[index];
+      
+      gridMatrix = JSON.parse(JSON.stringify(state.gridMatrix));
+      activePalette = JSON.parse(JSON.stringify(state.activePalette));
+      currentGridX = state.currentGridX;
+      currentGridY = state.currentGridY;
+
+      renderCanvas();
+      updatePaletteUI();
+      updateHistoryButtons();
+    }
+
+    function updateHistoryButtons() {
+      undoBtn.disabled = currentIndex <= 0;
+      redoBtn.disabled = currentIndex >= history.length - 1;
+    }
+
+    undoBtn.addEventListener('click', () => {
+      if (currentIndex > 0) {
+        currentIndex--;
+        restoreState(currentIndex);
+      }
+    });
+
+    redoBtn.addEventListener('click', () => {
+      if (currentIndex < history.length - 1) {
+        currentIndex++;
+        restoreState(currentIndex);
+      }
+    });
+
+    gridWidthInput.addEventListener('input', (e) => {
+      document.getElementById('gridWidthVal').textContent = e.target.value;
+      if (loadedImg) processImage();
+    });
+
+    colorCountInput.addEventListener('input', (e) => {
+      document.getElementById('colorCountVal').textContent = e.target.value;
+      if (loadedImg) processImage();
+    });
+
+    colorMetricInput.addEventListener('change', () => { if (loadedImg) processImage(); });
+    colorMethodInput.addEventListener('change', () => { if (loadedImg) processImage(); });
+
+    upload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        loadedImg = new Image();
+        loadedImg.onload = () => {
+          history = [];
+          currentIndex = -1;
+          processImage();
+        };
+        loadedImg.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function processImage() {
+      currentGridX = parseInt(gridWidthInput.value, 10);
+      const maxColors = parseInt(colorCountInput.value, 10);
+      const metric = colorMetricInput.value;
+      const method = colorMethodInput.value;
+
+      const aspect = loadedImg.height / loadedImg.width;
+      currentGridY = Math.round(currentGridX * aspect);
+
+      const offCanvas = document.createElement('canvas');
+      offCanvas.width = currentGridX;
+      offCanvas.height = currentGridY;
+      const offCtx = offCanvas.getContext('2d');
+      offCtx.drawImage(loadedImg, 0, 0, currentGridX, currentGridY);
+      const imgData = offCtx.getImageData(0, 0, currentGridX, currentGridY).data;
+
+      const selectedDmc = extractDmcPalette(imgData, maxColors, metric, method);
+
+      activePalette = selectedDmc.map((dmc, idx) => ({
+        code: dmc.code,
+        dmc: dmc,
+        symbol: SYMBOLS[idx % SYMBOLS.length],
+        hex: rgbToHex(dmc.r, dmc.g, dmc.b)
+      }));
+
+      gridMatrix = [];
+      for (let y = 0; y < currentGridY; y++) {
+        const row = [];
+        for (let x = 0; x < currentGridX; x++) {
+          const idx = (y * currentGridX + x) * 4;
+          const r = imgData[idx], g = imgData[idx + 1], b = imgData[idx + 2];
+          const lab = rgbToLab(r, g, b);
+
+          let nearestDmc = activePalette[0].code;
+          let minDist = Infinity;
+          activePalette.forEach(p => {
+            const dist = getColorDistance(r, g, b, lab, p.dmc, metric);
+            if (dist < minDist) {
+              minDist = dist;
+              nearestDmc = p.code;
+            }
+          });
+          row.push(nearestDmc);
+        }
+        gridMatrix.push(row);
+      }
+
+      renderCanvas();
+      updatePaletteUI();
+      saveState();
+    }
+
+    function extractDmcPalette(pixels, maxColors, metric, method) {
+      if (method === 'frequency') {
+        const counts = {};
+        for (let i = 0; i < pixels.length; i += 4) {
+          const r = pixels[i], g = pixels[i+1], b = pixels[i+2];
+          const lab = rgbToLab(r, g, b);
+          let nearest = DMC_COLORS[0];
+          let minDist = Infinity;
+          DMC_COLORS.forEach(c => {
+            const dist = getColorDistance(r, g, b, lab, c, metric);
+            if (dist < minDist) { minDist = dist; nearest = c; }
+          });
+          counts[nearest.code] = (counts[nearest.code] || 0) + 1;
+        }
+        const sorted = Object.keys(counts).sort((a,b) => counts[b] - counts[a]).slice(0, maxColors);
+        return DMC_COLORS.filter(c => sorted.includes(c.code));
+      } else {
+        let centroids = [];
+        const step = Math.floor(pixels.length / (4 * maxColors));
+        for (let i = 0; i < maxColors; i++) {
+          const idx = i * step * 4;
+          centroids.push([pixels[idx], pixels[idx+1], pixels[idx+2]]);
+        }
+
+        for (let iter = 0; iter < 5; iter++) {
+          const clusters = Array.from({length: maxColors}, () => []);
+          for (let i = 0; i < pixels.length; i += 4) {
+            const r = pixels[i], g = pixels[i+1], b = pixels[i+2];
+            let minD = Infinity, cIdx = 0;
+            centroids.forEach((c, idx) => {
+              const d = Math.hypot(r - c[0], g - c[1], b - c[2]);
+              if (d < minD) { minD = d; cIdx = idx; }
+            });
+            clusters[cIdx].push([r, g, b]);
+          }
+          centroids = clusters.map(cl => {
+            if (cl.length === 0) return [128, 128, 128];
+            const sum = cl.reduce((acc, v) => [acc[0]+v[0], acc[1]+v[1], acc[2]+v[2]], [0,0,0]);
+            return [sum[0]/cl.length, sum[1]/cl.length, sum[2]/cl.length];
+          });
+        }
+
+        const dmcSet = new Set();
+        centroids.forEach(c => {
+          const lab = rgbToLab(c[0], c[1], c[2]);
+          let nearest = DMC_COLORS[0];
+          let minDist = Infinity;
+          DMC_COLORS.forEach(dmc => {
+            const dist = getColorDistance(c[0], c[1], c[2], lab, dmc, metric);
+            if (dist < minDist) { minDist = dist; nearest = dmc; }
+          });
+          dmcSet.add(nearest);
+        });
+        return Array.from(dmcSet);
+      }
+    }
+
+    function renderCanvas() {
+      canvas.width = currentGridX * cellSize;
+      canvas.height = currentGridY * cellSize;
+
+      const paletteMap = {};
+      activePalette.forEach(p => paletteMap[p.code] = p);
+
+      for (let y = 0; y < currentGridY; y++) {
+        for (let x = 0; x < currentGridX; x++) {
+          const code = gridMatrix[y][x];
+          const item = paletteMap[code] || activePalette[0];
+
+          ctx.fillStyle = item.hex;
+          ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+
+          const brightness = (item.dmc.r * 299 + item.dmc.g * 587 + item.dmc.b * 114) / 1000;
+          ctx.fillStyle = brightness > 125 ? '#000000' : '#ffffff';
+          ctx.font = '500 11px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(item.symbol, x * cellSize + cellSize / 2, y * cellSize + cellSize / 2);
+        }
+      }
+
+      for (let x = 0; x <= currentGridX; x++) {
+        ctx.beginPath();
+        ctx.lineWidth = (x % 10 === 0) ? 1.5 : (x % 5 === 0 ? 0.8 : 0.25);
+        ctx.strokeStyle = (x % 5 === 0) ? '#334155' : '#cbd5e1';
+        ctx.moveTo(x * cellSize, 0); ctx.lineTo(x * cellSize, canvas.height);
+        ctx.stroke();
+      }
+
+      for (let y = 0; y <= currentGridY; y++) {
+        ctx.beginPath();
+        ctx.lineWidth = (y % 10 === 0) ? 1.5 : (y % 5 === 0 ? 0.8 : 0.25);
+        ctx.strokeStyle = (y % 5 === 0) ? '#334155' : '#cbd5e1';
+        ctx.moveTo(0, y * cellSize); ctx.lineTo(canvas.width, y * cellSize);
+        ctx.stroke();
+      }
+    }
+
+    function paintCell(e) {
+      if (!gridMatrix.length || !activePalette.length) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.floor((e.clientX - rect.left) / cellSize);
+      const y = Math.floor((e.clientY - rect.top) / cellSize);
+
+      if (x >= 0 && x < currentGridX && y >= 0 && y < currentGridY) {
+        const targetCode = activePalette[selectedPaletteIndex].code;
+        if (gridMatrix[y][x] !== targetCode) {
+          gridMatrix[y][x] = targetCode;
+          hasPaintedInCurrentStroke = true;
+          renderCanvas();
+          updatePaletteUI();
+        }
+      }
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      isMouseDown = true;
+      hasPaintedInCurrentStroke = false;
+      paintCell(e);
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (isMouseDown) paintCell(e);
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isMouseDown) {
+        isMouseDown = false;
+        if (hasPaintedInCurrentStroke) {
+          saveState();
+        }
+      }
+    });
+
+    function updatePaletteUI() {
+      paletteList.innerHTML = '';
+      const counts = {};
+      gridMatrix.forEach(row => row.forEach(code => counts[code] = (counts[code] || 0) + 1));
+
+      activePalette.forEach((item, idx) => {
+        const count = counts[item.code] || 0;
+        const brightness = (item.dmc.r * 299 + item.dmc.g * 587 + item.dmc.b * 114) / 1000;
+        const textColor = brightness > 125 ? '#000' : '#fff';
+
+        const elem = document.createElement('div');
+        elem.className = `color-item ${idx === selectedPaletteIndex ? 'selected' : ''}`;
+        elem.onclick = (e) => {
+          if (e.target.tagName === 'SELECT') return;
+          selectedPaletteIndex = idx;
+          updatePaletteUI();
+        };
+
+        let optionsHtml = DMC_COLORS.map(c => 
+          `<option value="${c.code}" ${c.code === item.code ? 'selected' : ''}>DMC ${c.code} (${c.name})</option>`
+        ).join('');
+
+        elem.innerHTML = `
+          <div class="color-box" style="background-color: ${item.hex}; color: ${textColor}">
+            ${item.symbol}
+          </div>
+          <div class="color-info">
+            <strong>記号 [ ${item.symbol} ]</strong>
+            <div class="color-count">使用数: <strong>${count}</strong> マス</div>
+            <select class="dmc-select" onchange="changePaletteDmc(${idx}, this.value)">
+              ${optionsHtml}
+            </select>
+          </div>
+        `;
+        paletteList.appendChild(elem);
+      });
+    }
+
+    window.changePaletteDmc = function(paletteIdx, newDmcCode) {
+      const oldCode = activePalette[paletteIdx].code;
+      const newDmc = DMC_COLORS.find(c => c.code === newDmcCode);
+      if (!newDmc) return;
+
+      activePalette[paletteIdx].code = newDmc.code;
+      activePalette[paletteIdx].dmc = newDmc;
+      activePalette[paletteIdx].hex = rgbToHex(newDmc.r, newDmc.g, newDmc.b);
+
+      gridMatrix = gridMatrix.map(row => row.map(code => code === oldCode ? newDmc.code : code));
+
+      renderCanvas();
+      updatePaletteUI();
+      saveState();
+    };
+
+    function rgbToHex(r, g, b) {
+      return "#" + [r, g, b].map(x => Math.round(x).toString(16).padStart(2, '0')).join('');
+    }
+
+    downloadBtn.addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.download = 'embroidery_pattern.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    });
+  </script>
+</body>
+</html>
