@@ -279,10 +279,6 @@
     <div class="control-group control-group-full">
       <label for="upload">1. 画像を選択</label>
       <input type="file" id="upload" accept="image/*">
-      <div class="history-controls" style="margin-top:2px;">
-        <button id="undoBtn" class="btn btn-secondary" disabled>↩ 戻す</button>
-        <button id="redoBtn" class="btn btn-secondary" disabled>↪ やり直し</button>
-      </div>
     </div>
 
     <div class="control-group">
@@ -320,6 +316,11 @@
     <div class="canvas-card">
       <div class="canvas-wrapper">
         <canvas id="canvas"></canvas>
+         <div class="history-controls" style="margin-top:2px;">
+          <button id="undoBtn" class="btn btn-secondary" disabled>↩ 戻す</button>
+          <button id="redoBtn" class="btn btn-secondary" disabled>↪ やり直し</button>
+         </div>
+
       </div>
       <div class="canvas-hint">💡 マス目をなぞって塗り替えることができます</div>
     </div>
