@@ -133,10 +133,10 @@
       color: var(--text-main);
       border: 1px solid var(--border-color);
     }
+    .btn-secondary:active:not(:disabled) {
+      background-color: #f1f5f9;
+    }
     .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .history-controls { display: flex; gap: 4px; }
-    .history-controls .btn { flex: 1; padding: 6px 2px; font-size: 0.7rem; }
 
     .main-container {
       display: grid;
@@ -195,6 +195,19 @@
       font-size: 0.7rem;
       color: var(--text-muted);
       text-align: center;
+    }
+
+    /* 図案下のコントロール（戻す・やり直し） */
+    .canvas-controls {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .canvas-controls .btn {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 0.75rem;
     }
 
     .palette-card {
@@ -273,7 +286,7 @@
 </head>
 <body>
 
-  <h1>🎨 図案作成ジェネレーター</h1>
+  <h1>🎨 刺繍図案 画面フィット版</h1>
 
   <div class="control-panel">
     <div class="control-group control-group-full">
@@ -316,11 +329,14 @@
     <div class="canvas-card">
       <div class="canvas-wrapper">
         <canvas id="canvas"></canvas>
-         <div class="history-controls" style="margin-top:2px;">
-          <button id="undoBtn" class="btn btn-secondary" disabled>↩ 戻す</button>
-          <button id="redoBtn" class="btn btn-secondary" disabled>↪ やり直し</button>
-         </div>
       </div>
+      
+      <!-- 図案の下に配置された「戻す」「やり直し」ボタン -->
+      <div class="canvas-controls">
+        <button id="undoBtn" class="btn btn-secondary" disabled>↩ 戻す</button>
+        <button id="redoBtn" class="btn btn-secondary" disabled>↪ やり直し</button>
+      </div>
+
       <div class="canvas-hint">💡 マス目をなぞって塗り替えることができます</div>
     </div>
 
@@ -659,7 +675,6 @@
       }
     }
 
-    // 正しい位置計算（レスポンシブ拡大縮小率に対応）
     function getCanvasCoordinates(e) {
       const rect = canvas.getBoundingClientRect();
       const scaleX = canvas.width / rect.width;
