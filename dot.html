@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>刺繍図案ジェネレーター (20マス高精度版)</title>
+  <title>刺繍図案ジェネレーター (線画・イラスト特化版)</title>
   <style>
     :root {
       --primary-color: #4f46e5;
@@ -68,6 +68,7 @@
     }
 
     .control-group { display: flex; flex-direction: column; gap: 4px; }
+    .control-group-full { grid-column: 1 / -1; }
     label { font-size: 0.75rem; font-weight: 600; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; }
     .val-label { font-weight: 700; color: var(--primary-color); font-size: 0.8rem; }
     
@@ -91,6 +92,10 @@
       width: 100%;
     }
 
+    select, input[type="checkbox"] {
+      cursor: pointer;
+    }
+
     select {
       padding: 6px 8px;
       border: 1px solid var(--border-color);
@@ -98,9 +103,17 @@
       background-color: white;
       font-size: 0.75rem;
       color: var(--text-main);
-      cursor: pointer;
       outline: none;
       width: 100%;
+    }
+
+    .checkbox-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
     }
 
     .btn {
@@ -148,7 +161,6 @@
     @media (max-width: 860px) {
       .main-container { grid-template-columns: 1fr; }
       .control-panel { grid-template-columns: 1fr 1fr; }
-      .control-group-full { grid-column: 1 / -1; }
     }
 
     @media (max-width: 480px) {
@@ -213,7 +225,7 @@
       border-radius: var(--radius-lg);
       border: 1px solid var(--border-color);
       box-shadow: var(--shadow-md);
-      max-height: 520px;
+      max-height: 540px;
       display: flex;
       flex-direction: column;
     }
@@ -283,48 +295,39 @@
 </head>
 <body>
 
-  <h1>🎨 刺繍図案ジェネレーター <span class="badge">20マス高精度ドットモード</span></h1>
+  <h1>🎨 刺繍図案ジェネレーター <span class="badge">線画・20マス最適化</span></h1>
 
   <div class="control-panel">
     <div class="control-group control-group-full">
-      <label for="upload">1. 画像を選択</label>
+      <label for="upload">1. 画像を選択 (イラスト・線画)</label>
       <input type="file" id="upload" accept="image/*">
     </div>
 
     <div class="control-group">
       <label for="gridWidth">2. 横マス数 <span id="gridWidthVal" class="val-label">20</span></label>
-      <input type="range" id="gridWidth" min="8" max="40" value="20">
+      <input type="range" id="gridWidth" min="10" max="40" value="20">
     </div>
 
     <div class="control-group">
-      <label for="colorCount">3. 最大色数 <span id="colorCountVal" class="val-label">8</span></label>
-      <input type="range" id="colorCount" min="2" max="20" value="8">
+      <label class="checkbox-label" for="autoCrop">
+        <input type="checkbox" id="autoCrop" checked>
+        余白を自動カット (主体拡大)
+      </label>
     </div>
 
     <div class="control-group">
-      <label for="edgeBoost">4. 輪郭・エッジ強調 <span id="edgeBoostVal" class="val-label">1.5</span></label>
-      <input type="range" id="edgeBoost" min="0" max="3" step="0.5" value="1.5">
+      <label for="lineThicken">線太らせ (膨張) <span id="lineThickenVal" class="val-label">2</span> px</label>
+      <input type="range" id="lineThicken" min="0" max="5" value="2">
     </div>
 
     <div class="control-group">
-      <label for="contrast">5. コントラスト <span id="contrastVal" class="val-label">1.2</span></label>
-      <input type="range" id="contrast" min="0.8" max="2.0" step="0.1" value="1.2">
+      <label for="threshold">二値化 閾値 (線の検出) <span id="thresholdVal" class="val-label">180</span></label>
+      <input type="range" id="threshold" min="50" max="245" value="180">
     </div>
 
     <div class="control-group">
-      <label for="colorMetric">6. 色判定計算</label>
-      <select id="colorMetric">
-        <option value="lab" selected>CIE Lab (自然な見た目)</option>
-        <option value="rgb">RGB (標準)</option>
-      </select>
-    </div>
-
-    <div class="control-group">
-      <label for="colorMethod">7. 色抽出モード</label>
-      <select id="colorMethod">
-        <option value="kmeans" selected>K-Means (メイン色重視)</option>
-        <option value="frequency">頻出色 (ハッキリした境界)</option>
-      </select>
+      <label for="colorCount">最大色数 <span id="colorCountVal" class="val-label">2</span></label>
+      <input type="range" id="colorCount" min="2" max="10" value="2">
     </div>
 
     <div class="control-group control-group-full">
@@ -343,7 +346,7 @@
         <button id="redoBtn" class="btn btn-secondary" disabled>↪ やり直し</button>
       </div>
 
-      <div class="canvas-hint">💡 マス目をなぞって直接色を修正できます</div>
+      <div class="canvas-hint">💡 マス目をタップ/ドラッグで修正できます</div>
     </div>
 
     <div class="palette-card">
@@ -354,7 +357,7 @@
   </div>
 
   <script>
-    const SYMBOLS = ["★", "◆", "●", "▲", "♣", "♥", "♠", "♦", "■", "✖", "▼", "✚", "✱", "✿", "✦", "✪", "⊕", "⊗", "☣", "☪", "☸", "☯", "⚡"];
+    const SYMBOLS = ["★", "◆", "●", "▲", "♣", "♥", "♠", "♦", "■", "✖", "▼", "✚", "✱", "✿"];
 
     const DMC_COLORS = [
       { code: "310", r: 0, g: 0, b: 0, name: "Black" },
@@ -362,77 +365,19 @@
       { code: "ECRU", r: 240, g: 234, b: 218, name: "Ecru" },
       { code: "666", r: 227, g: 29, b: 66, name: "Bright Red" },
       { code: "321", r: 199, g: 0, b: 57, name: "Red" },
-      { code: "815", r: 119, g: 0, b: 34, name: "Garnet Medium" },
-      { code: "602", r: 227, g: 49, b: 112, name: "Cranberry Medium" },
-      { code: "605", r: 255, g: 194, b: 214, name: "Cranberry Very Light" },
-      { code: "963", r: 255, g: 215, b: 220, name: "Dusty Rose" },
       { code: "743", r: 255, g: 202, b: 58, name: "Yellow Medium" },
-      { code: "745", r: 255, g: 233, b: 161, name: "Yellow Pale Light" },
-      { code: "972", r: 249, g: 171, b: 0, name: "Canary Yellow Deep" },
-      { code: "740", r: 255, g: 123, b: 0, name: "Tangerine" },
-      { code: "900", r: 209, g: 60, b: 0, name: "Burnt Orange Dark" },
       { code: "702", r: 70, g: 160, b: 70, name: "Kelly Green" },
-      { code: "704", r: 115, g: 198, b: 58, name: "Chartreuse Bright" },
-      { code: "699", r: 0, g: 100, b: 40, name: "Green" },
-      { code: "986", r: 43, g: 78, b: 42, name: "Forest Green" },
-      { code: "911", r: 0, g: 153, b: 102, name: "Emerald Green" },
-      { code: "959", r: 106, g: 208, b: 188, name: "Seagreen Medium" },
-      { code: "820", r: 16, g: 44, b: 87, name: "Royal Blue Very Dark" },
       { code: "796", r: 17, g: 68, b: 129, name: "Royal Blue Dark" },
-      { code: "798", r: 74, g: 110, b: 166, name: "Delft Blue Dark" },
-      { code: "800", r: 192, g: 216, b: 235, name: "Delft Blue Pale" },
-      { code: "996", r: 48, g: 181, b: 227, name: "Electric Blue" },
-      { code: "550", r: 92, g: 24, b: 107, name: "Violet Very Dark" },
-      { code: "553", r: 163, g: 90, b: 162, name: "Violet Medium" },
-      { code: "209", r: 202, g: 148, b: 201, name: "Lavender Dark" },
       { code: "433", r: 122, g: 69, b: 34, name: "Brown Medium" },
-      { code: "436", r: 187, g: 125, b: 75, name: "Tan Medium" },
-      { code: "437", r: 216, g: 161, b: 110, name: "Tan Light" },
-      { code: "938", r: 54, g: 31, b: 14, name: "Coffee Brown" },
-      { code: "413", r: 86, g: 86, b: 86, name: "Pewter Gray Dark" },
-      { code: "414", r: 140, g: 140, b: 140, name: "Steel Gray Dark" },
-      { code: "762", r: 228, g: 228, b: 228, name: "Pearl Gray Light" },
-      { code: "318", r: 171, g: 171, b: 171, name: "Light Steel Gray" },
-      { code: "3799", r: 42, g: 44, b: 46, name: "Pewter Gray Very Dark" },
-      { code: "3865", r: 249, g: 247, b: 241, name: "Winter White" }
+      { code: "414", r: 140, g: 140, b: 140, name: "Steel Gray Dark" }
     ];
-
-    function rgbToLab(r, g, b) {
-      let r_ = r / 255, g_ = g / 255, b_ = b / 255;
-      r_ = r_ > 0.04045 ? Math.pow((r_ + 0.055) / 1.055, 2.4) : r_ / 12.92;
-      g_ = g_ > 0.04045 ? Math.pow((g_ + 0.055) / 1.055, 2.4) : g_ / 12.92;
-      b_ = b_ > 0.04045 ? Math.pow((b_ + 0.055) / 1.055, 2.4) : b_ / 12.92;
-
-      let x = (r_ * 0.4124 + g_ * 0.3576 + b_ * 0.1805) * 100;
-      let y = (r_ * 0.2126 + g_ * 0.7152 + b_ * 0.0722) * 100;
-      let z = (r_ * 0.0193 + g_ * 0.1192 + b_ * 0.9505) * 100;
-
-      x /= 95.047; y /= 100.000; z /= 108.883;
-      x = x > 0.008856 ? Math.cbrt(x) : (7.787 * x) + (16 / 116);
-      y = y > 0.008856 ? Math.cbrt(y) : (7.787 * y) + (16 / 116);
-      z = z > 0.008856 ? Math.cbrt(z) : (7.787 * z) + (16 / 116);
-
-      return [(116 * y) - 16, 500 * (x - y), 200 * (y - z)];
-    }
-
-    DMC_COLORS.forEach(c => c.lab = rgbToLab(c.r, c.g, c.b));
-
-    function getColorDistance(r1, g1, b1, lab1, dmcColor, metric) {
-      if (metric === 'lab') {
-        const [l2, a2, b2] = dmcColor.lab;
-        return Math.hypot(lab1[0] - l2, lab1[1] - a2, lab1[2] - b2);
-      } else {
-        return Math.hypot(r1 - dmcColor.r, g1 - dmcColor.g, b1 - dmcColor.b);
-      }
-    }
 
     const upload = document.getElementById('upload');
     const gridWidthInput = document.getElementById('gridWidth');
+    const autoCropInput = document.getElementById('autoCrop');
+    const lineThickenInput = document.getElementById('lineThicken');
+    const thresholdInput = document.getElementById('threshold');
     const colorCountInput = document.getElementById('colorCount');
-    const edgeBoostInput = document.getElementById('edgeBoost');
-    const contrastInput = document.getElementById('contrast');
-    const colorMetricInput = document.getElementById('colorMetric');
-    const colorMethodInput = document.getElementById('colorMethod');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const paletteList = document.getElementById('paletteList');
@@ -454,18 +399,14 @@
 
     function saveState() {
       if (!gridMatrix.length) return;
-
       const state = {
         gridMatrix: JSON.parse(JSON.stringify(gridMatrix)),
         activePalette: JSON.parse(JSON.stringify(activePalette)),
-        currentGridX,
-        currentGridY
+        currentGridX, currentGridY
       };
-
       if (currentIndex < history.length - 1) {
         history = history.slice(0, currentIndex + 1);
       }
-
       history.push(state);
       currentIndex++;
       updateHistoryButtons();
@@ -474,12 +415,10 @@
     function restoreState(index) {
       if (index < 0 || index >= history.length) return;
       const state = history[index];
-      
       gridMatrix = JSON.parse(JSON.stringify(state.gridMatrix));
       activePalette = JSON.parse(JSON.stringify(state.activePalette));
       currentGridX = state.currentGridX;
       currentGridY = state.currentGridY;
-
       renderCanvas();
       updatePaletteUI();
       updateHistoryButtons();
@@ -490,42 +429,26 @@
       redoBtn.disabled = currentIndex >= history.length - 1;
     }
 
-    undoBtn.addEventListener('click', () => {
-      if (currentIndex > 0) {
-        currentIndex--;
-        restoreState(currentIndex);
-      }
-    });
-
-    redoBtn.addEventListener('click', () => {
-      if (currentIndex < history.length - 1) {
-        currentIndex++;
-        restoreState(currentIndex);
-      }
-    });
+    undoBtn.addEventListener('click', () => { if (currentIndex > 0) { currentIndex--; restoreState(currentIndex); } });
+    redoBtn.addEventListener('click', () => { if (currentIndex < history.length - 1) { currentIndex++; restoreState(currentIndex); } });
 
     gridWidthInput.addEventListener('input', (e) => {
       document.getElementById('gridWidthVal').textContent = e.target.value;
       if (loadedImg) processImage();
     });
-
+    autoCropInput.addEventListener('change', () => { if (loadedImg) processImage(); });
+    lineThickenInput.addEventListener('input', (e) => {
+      document.getElementById('lineThickenVal').textContent = e.target.value;
+      if (loadedImg) processImage();
+    });
+    thresholdInput.addEventListener('input', (e) => {
+      document.getElementById('thresholdVal').textContent = e.target.value;
+      if (loadedImg) processImage();
+    });
     colorCountInput.addEventListener('input', (e) => {
       document.getElementById('colorCountVal').textContent = e.target.value;
       if (loadedImg) processImage();
     });
-
-    edgeBoostInput.addEventListener('input', (e) => {
-      document.getElementById('edgeBoostVal').textContent = e.target.value;
-      if (loadedImg) processImage();
-    });
-
-    contrastInput.addEventListener('input', (e) => {
-      document.getElementById('contrastVal').textContent = e.target.value;
-      if (loadedImg) processImage();
-    });
-
-    colorMetricInput.addEventListener('change', () => { if (loadedImg) processImage(); });
-    colorMethodInput.addEventListener('change', () => { if (loadedImg) processImage(); });
 
     upload.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -545,99 +468,128 @@
 
     function processImage() {
       currentGridX = parseInt(gridWidthInput.value, 10);
-      const maxColors = parseInt(colorCountInput.value, 10);
-      const edgeBoost = parseFloat(edgeBoostInput.value);
-      const contrast = parseFloat(contrastInput.value);
-      const metric = colorMetricInput.value;
-      const method = colorMethodInput.value;
+      const doAutoCrop = autoCropInput.checked;
+      const thickenRadius = parseInt(lineThickenInput.value, 10);
+      const thresh = parseInt(thresholdInput.value, 10);
 
-      const aspect = loadedImg.height / loadedImg.width;
-      currentGridY = Math.round(currentGridX * aspect);
+      // 高解像度キャンバス
+      const workCanvas = document.createElement('canvas');
+      const workCtx = workCanvas.getContext('2d');
+      workCanvas.width = loadedImg.width;
+      workCanvas.height = loadedImg.height;
+      workCtx.drawImage(loadedImg, 0, 0);
 
-      // 1. 一旦高解像度のままプリプロセスCanvasへ描画
-      const prepCanvas = document.createElement('canvas');
-      const prepCtx = prepCanvas.getContext('2d');
-      const w = 200, h = Math.round(200 * aspect);
-      prepCanvas.width = w;
-      prepCanvas.height = h;
+      let imgData = workCtx.getImageData(0, 0, workCanvas.width, workCanvas.height);
+      let data = imgData.data;
 
-      prepCtx.drawImage(loadedImg, 0, 0, w, h);
-      let imgDataObj = prepCtx.getImageData(0, 0, w, h);
-      let pixels = imgDataObj.data;
+      // 1. 自動トリミング（猫の周囲の白地カット）
+      let srcX = 0, srcY = 0, srcW = workCanvas.width, srcH = workCanvas.height;
+      if (doAutoCrop) {
+        let minX = srcW, minY = srcH, maxX = 0, maxY = 0;
+        let found = false;
 
-      // コントラスト調整 & 彩度強調
-      for (let i = 0; i < pixels.length; i += 4) {
-        // Contrast
-        for (let c = 0; c < 3; c++) {
-          pixels[i+c] = Math.min(255, Math.max(0, (pixels[i+c] - 128) * contrast + 128));
-        }
-      }
-      prepCtx.putImageData(imgDataObj, 0, 0);
-
-      // 2. 小さなマス数へリサイズ（ダウンスケーリング）
-      const offCanvas = document.createElement('canvas');
-      offCanvas.width = currentGridX;
-      offCanvas.height = currentGridY;
-      const offCtx = offCanvas.getContext('2d');
-      
-      // 平滑化せずに輪郭を残すよう調整
-      offCtx.imageSmoothingEnabled = true;
-      offCtx.imageSmoothingQuality = 'high';
-      offCtx.drawImage(prepCanvas, 0, 0, currentGridX, currentGridY);
-
-      let smallImgDataObj = offCtx.getImageData(0, 0, currentGridX, currentGridY);
-      let smallPixels = smallImgDataObj.data;
-
-      // 3. エッジ（輪郭）補正フィルタ（Laplacian Edge Filter）
-      if (edgeBoost > 0) {
-        const copy = new Uint8ClampedArray(smallPixels);
-        for (let y = 1; y < currentGridY - 1; y++) {
-          for (let x = 1; x < currentGridX - 1; x++) {
-            const idx = (y * currentGridX + x) * 4;
-            for (let c = 0; c < 3; c++) {
-              const center = copy[idx + c];
-              const around = (
-                copy[((y - 1) * currentGridX + x) * 4 + c] +
-                copy[((y + 1) * currentGridX + x) * 4 + c] +
-                copy[(y * currentGridX + (x - 1)) * 4 + c] +
-                copy[(y * currentGridX + (x + 1)) * 4 + c]
-              ) / 4;
-
-              const edgeVal = (center - around) * edgeBoost;
-              smallPixels[idx + c] = Math.min(255, Math.max(0, center + edgeVal));
+        for (let y = 0; y < srcH; y++) {
+          for (let x = 0; x < srcW; x++) {
+            const idx = (y * srcW + x) * 4;
+            const gray = (data[idx] + data[idx+1] + data[idx+2]) / 3;
+            if (gray < thresh) { // 墨線を発見
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+              if (y < minY) minY = y;
+              if (y > maxY) maxY = y;
+              found = true;
             }
           }
         }
+
+        if (found) {
+          // マージン付与
+          const margin = 10;
+          srcX = Math.max(0, minX - margin);
+          srcY = Math.max(0, minY - margin);
+          srcW = Math.min(workCanvas.width - srcX, (maxX - minX) + margin * 2);
+          srcH = Math.min(workCanvas.height - srcY, (maxY - minY) + margin * 2);
+        }
       }
 
-      // 4. 減色・パレット生成
-      const selectedDmc = extractDmcPalette(smallPixels, maxColors, metric, method);
+      currentGridY = Math.max(8, Math.round(currentGridX * (srcH / srcW)));
 
-      activePalette = selectedDmc.map((dmc, idx) => ({
-        code: dmc.code,
-        dmc: dmc,
-        symbol: SYMBOLS[idx % SYMBOLS.length],
-        hex: rgbToHex(dmc.r, dmc.g, dmc.b)
-      }));
+      // 2. 切り抜き後の画像を二値化 + 線太らせ (Dilation)
+      const croppedCanvas = document.createElement('canvas');
+      croppedCanvas.width = srcW;
+      croppedCanvas.height = srcH;
+      const croppedCtx = croppedCanvas.getContext('2d');
+      croppedCtx.drawImage(workCanvas, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
+
+      let croppedData = croppedCtx.getImageData(0, 0, srcW, srcH);
+      let pixels = croppedData.data;
+
+      // 二値化マップ
+      const binaryMap = new Uint8Array(srcW * srcH);
+      for (let i = 0; i < pixels.length; i += 4) {
+        const gray = (pixels[i] + pixels[i+1] + pixels[i+2]) / 3;
+        binaryMap[i / 4] = gray < thresh ? 1 : 0; // 1: 黒線, 0: 背景
+      }
+
+      // 線太らせ (Dilation)
+      const dilatedMap = new Uint8Array(srcW * srcH);
+      if (thickenRadius > 0) {
+        for (let y = 0; y < srcH; y++) {
+          for (let x = 0; x < srcW; x++) {
+            if (binaryMap[y * srcW + x] === 1) {
+              for (let dy = -thickenRadius; dy <= thickenRadius; dy++) {
+                for (let dx = -thickenRadius; dx <= thickenRadius; dx++) {
+                  const nx = x + dx, ny = y + dy;
+                  if (nx >= 0 && nx < srcW && ny >= 0 && ny < srcH) {
+                    dilatedMap[ny * srcW + nx] = 1;
+                  }
+                }
+              }
+            }
+          }
+        }
+      } else {
+        dilatedMap.set(binaryMap);
+      }
+
+      // 加工データを書き戻し
+      for (let i = 0; i < dilatedMap.length; i++) {
+        const idx = i * 4;
+        const val = dilatedMap[i] === 1 ? 0 : 255;
+        pixels[idx] = val;
+        pixels[idx+1] = val;
+        pixels[idx+2] = val;
+      }
+      croppedCtx.putImageData(croppedData, 0, 0);
+
+      // 3. マス目（グリッド）へのダウンスケーリング
+      const gridCanvas = document.createElement('canvas');
+      gridCanvas.width = currentGridX;
+      gridCanvas.height = currentGridY;
+      const gridCtx = gridCanvas.getContext('2d');
+      gridCtx.imageSmoothingEnabled = true;
+      gridCtx.drawImage(croppedCanvas, 0, 0, currentGridX, currentGridY);
+
+      const gridData = gridCtx.getImageData(0, 0, currentGridX, currentGridY).data;
+
+      // 黒(310) と 白(BLANC) をデフォルトのパレットに
+      const blackDmc = DMC_COLORS.find(c => c.code === "310");
+      const whiteDmc = DMC_COLORS.find(c => c.code === "BLANC");
+
+      activePalette = [
+        { code: blackDmc.code, dmc: blackDmc, symbol: SYMBOLS[0], hex: "#000000" },
+        { code: whiteDmc.code, dmc: whiteDmc, symbol: SYMBOLS[1], hex: "#FFFFFF" }
+      ];
 
       gridMatrix = [];
       for (let y = 0; y < currentGridY; y++) {
         const row = [];
         for (let x = 0; x < currentGridX; x++) {
           const idx = (y * currentGridX + x) * 4;
-          const r = smallPixels[idx], g = smallPixels[idx + 1], b = smallPixels[idx + 2];
-          const lab = rgbToLab(r, g, b);
-
-          let nearestDmc = activePalette[0].code;
-          let minDist = Infinity;
-          activePalette.forEach(p => {
-            const dist = getColorDistance(r, g, b, lab, p.dmc, metric);
-            if (dist < minDist) {
-              minDist = dist;
-              nearestDmc = p.code;
-            }
-          });
-          row.push(nearestDmc);
+          const r = gridData[idx];
+          // 灰色領域は線画として黒に寄せる
+          const isLine = r < 200;
+          row.push(isLine ? blackDmc.code : whiteDmc.code);
         }
         gridMatrix.push(row);
       }
@@ -645,63 +597,6 @@
       renderCanvas();
       updatePaletteUI();
       saveState();
-    }
-
-    function extractDmcPalette(pixels, maxColors, metric, method) {
-      if (method === 'frequency') {
-        const counts = {};
-        for (let i = 0; i < pixels.length; i += 4) {
-          const r = pixels[i], g = pixels[i+1], b = pixels[i+2];
-          const lab = rgbToLab(r, g, b);
-          let nearest = DMC_COLORS[0];
-          let minDist = Infinity;
-          DMC_COLORS.forEach(c => {
-            const dist = getColorDistance(r, g, b, lab, c, metric);
-            if (dist < minDist) { minDist = dist; nearest = c; }
-          });
-          counts[nearest.code] = (counts[nearest.code] || 0) + 1;
-        }
-        const sorted = Object.keys(counts).sort((a,b) => counts[b] - counts[a]).slice(0, maxColors);
-        return DMC_COLORS.filter(c => sorted.includes(c.code));
-      } else {
-        let centroids = [];
-        const step = Math.max(1, Math.floor(pixels.length / (4 * maxColors)));
-        for (let i = 0; i < maxColors; i++) {
-          const idx = (i * step * 4) % pixels.length;
-          centroids.push([pixels[idx], pixels[idx+1], pixels[idx+2]]);
-        }
-
-        for (let iter = 0; iter < 6; iter++) {
-          const clusters = Array.from({length: maxColors}, () => []);
-          for (let i = 0; i < pixels.length; i += 4) {
-            const r = pixels[i], g = pixels[i+1], b = pixels[i+2];
-            let minD = Infinity, cIdx = 0;
-            centroids.forEach((c, idx) => {
-              const d = Math.hypot(r - c[0], g - c[1], b - c[2]);
-              if (d < minD) { minD = d; cIdx = idx; }
-            });
-            clusters[cIdx].push([r, g, b]);
-          }
-          centroids = clusters.map(cl => {
-            if (cl.length === 0) return [128, 128, 128];
-            const sum = cl.reduce((acc, v) => [acc[0]+v[0], acc[1]+v[1], acc[2]+v[2]], [0,0,0]);
-            return [sum[0]/cl.length, sum[1]/cl.length, sum[2]/cl.length];
-          });
-        }
-
-        const dmcSet = new Set();
-        centroids.forEach(c => {
-          const lab = rgbToLab(c[0], c[1], c[2]);
-          let nearest = DMC_COLORS[0];
-          let minDist = Infinity;
-          DMC_COLORS.forEach(dmc => {
-            const dist = getColorDistance(c[0], c[1], c[2], lab, dmc, metric);
-            if (dist < minDist) { minDist = dist; nearest = dmc; }
-          });
-          dmcSet.add(nearest);
-        });
-        return Array.from(dmcSet);
-      }
     }
 
     function renderCanvas() {
@@ -728,6 +623,7 @@
         }
       }
 
+      // グリッド線描画
       for (let x = 0; x <= currentGridX; x++) {
         ctx.beginPath();
         ctx.lineWidth = (x % 5 === 0) ? 1.2 : 0.3;
@@ -793,9 +689,7 @@
     const stopPainting = () => {
       if (isMouseDown) {
         isMouseDown = false;
-        if (hasPaintedInCurrentStroke) {
-          saveState();
-        }
+        if (hasPaintedInCurrentStroke) saveState();
       }
     };
 
@@ -867,7 +761,7 @@
 
     downloadBtn.addEventListener('click', () => {
       const link = document.createElement('a');
-      link.download = 'embroidery_pattern_20px.png';
+      link.download = 'cat_lineart_pattern.png';
       link.href = canvas.toDataURL();
       link.click();
     });
