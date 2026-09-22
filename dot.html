@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>刺繍図案ジェネレーター (線画・イラスト特化版)</title>
+  <title>線画特化型 刺繍図案ジェネレーター</title>
   <style>
     :root {
       --primary-color: #4f46e5;
@@ -11,488 +11,444 @@
       --primary-light: #e0e7ff;
       --bg-color: #f8fafc;
       --card-bg: #ffffff;
-      --border-color: #e2e8f0;
-      --border-focus: #cbd5e1;
+      --border-color: #cbd5e1;
       --text-main: #0f172a;
       --text-muted: #64748b;
-      --radius-lg: 16px;
-      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-md: 8px;
       --radius-sm: 6px;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-      --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -4px rgba(0,0,0,0.02);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
     }
 
     * { box-sizing: border-box; }
     body {
-      font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      max-width: 1240px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      max-width: 1100px;
       margin: 0 auto;
-      padding: 12px 10px;
+      padding: 12px;
       background-color: var(--bg-color);
       color: var(--text-main);
       -webkit-font-smoothing: antialiased;
       touch-action: manipulation;
     }
 
-    h1 {
-      font-size: 1.2rem;
-      font-weight: 700;
-      margin: 0 0 12px 0;
-      color: var(--text-main);
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .badge {
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: var(--primary-color);
-      background-color: var(--primary-light);
-      padding: 2px 8px;
-      border-radius: 9999px;
-    }
-
-    .control-panel {
-      background: var(--card-bg);
-      padding: 12px;
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-md);
-      border: 1px solid var(--border-color);
+    header {
       margin-bottom: 12px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 10px;
-      align-items: end;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
-    .control-group { display: flex; flex-direction: column; gap: 4px; }
-    .control-group-full { grid-column: 1 / -1; }
-    label { font-size: 0.75rem; font-weight: 600; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; }
-    .val-label { font-weight: 700; color: var(--primary-color); font-size: 0.8rem; }
-    
-    input[type="file"] {
-      font-size: 0.7rem;
-      padding: 4px;
-      border: 1px dashed var(--border-focus);
-      border-radius: var(--radius-sm);
-      background: #f8fafc;
-      color: var(--text-muted);
-      cursor: pointer;
-      width: 100%;
-    }
-
-    input[type="range"] {
-      accent-color: var(--primary-color);
-      cursor: pointer;
-      height: 6px;
-      background: #e2e8f0;
-      border-radius: 3px;
-      width: 100%;
-    }
-
-    select, input[type="checkbox"] {
-      cursor: pointer;
-    }
-
-    select {
-      padding: 6px 8px;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      background-color: white;
-      font-size: 0.75rem;
-      color: var(--text-main);
-      outline: none;
-      width: 100%;
-    }
-
-    .checkbox-label {
-      font-size: 0.75rem;
-      font-weight: 600;
+    h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin: 0;
       display: flex;
       align-items: center;
-      gap: 6px;
-      cursor: pointer;
+      gap: 8px;
     }
 
-    .btn {
-      padding: 8px 12px;
-      border-radius: var(--radius-sm);
+    .tag {
+      background: var(--primary-light);
+      color: var(--primary-color);
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 20px;
       font-weight: 600;
-      font-size: 0.8rem;
-      cursor: pointer;
-      border: none;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      width: 100%;
     }
 
-    .btn-primary { 
-      background-color: var(--primary-color); 
-      color: white; 
-      box-shadow: 0 2px 4px rgba(79, 70, 229, 0.25);
-    }
-    .btn-primary:active { 
-      background-color: var(--primary-hover); 
-      transform: scale(0.98);
-    }
-
-    .btn-secondary {
-      background-color: #ffffff;
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-    }
-    .btn-secondary:active:not(:disabled) {
-      background-color: #f1f5f9;
-    }
-    .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .main-container {
+    .app-container {
       display: grid;
-      grid-template-columns: 1fr 300px;
+      grid-template-columns: 280px 1fr 240px;
       gap: 12px;
       align-items: start;
     }
 
-    @media (max-width: 860px) {
-      .main-container { grid-template-columns: 1fr; }
-      .control-panel { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 900px) {
+      .app-container {
+        grid-template-columns: 1fr;
+      }
     }
 
-    @media (max-width: 480px) {
-      .control-panel { grid-template-columns: 1fr; }
-    }
-
-    .canvas-card {
+    .card {
       background: var(--card-bg);
-      padding: 12px;
-      border-radius: var(--radius-lg);
       border: 1px solid var(--border-color);
-      box-shadow: var(--shadow-md);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Control Panel */
+    .control-group {
+      margin-bottom: 10px;
+    }
+    .control-group label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .val-badge {
+      color: var(--primary-color);
+      font-weight: 700;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      font-size: 0.75rem;
+      padding: 6px;
+      background: #f1f5f9;
+      border: 1px dashed var(--border-color);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary-color);
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 2px;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-row input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--primary-color);
+    }
+
+    /* Canvas Viewport */
+    .canvas-container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      width: 100%;
     }
 
-    .canvas-wrapper {
-      position: relative;
+    .canvas-viewport {
       width: 100%;
-      overflow: hidden;
-      border-radius: var(--radius-sm);
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
-      cursor: crosshair;
-      user-select: none;
-      background-color: #ffffff;
+      max-width: 500px;
+      background: #ffffff;
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
       display: flex;
       justify-content: center;
       align-items: center;
+      overflow: hidden;
       touch-action: none;
+      user-select: none;
+      position: relative;
     }
 
-    canvas { 
-      max-width: 100%;
+    canvas {
+      width: 100% !important;
       height: auto !important;
-      display: block; 
+      display: block;
+      cursor: crosshair;
     }
 
-    .canvas-controls {
+    /* Toolbar below canvas */
+    .toolbar {
       display: flex;
       gap: 8px;
       width: 100%;
+      max-width: 500px;
       margin-top: 10px;
     }
-    .canvas-controls .btn {
+
+    .btn {
       flex: 1;
-      padding: 8px 12px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
       font-size: 0.75rem;
+      font-weight: 600;
+      border: 1px solid var(--border-color);
+      background: #ffffff;
+      color: var(--text-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .btn:active:not(:disabled) {
+      transform: scale(0.98);
+      background: #f1f5f9;
+    }
+
+    .btn-primary {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .tool-active {
+      border-color: var(--primary-color);
+      background: var(--primary-light);
+      color: var(--primary-color);
     }
 
     .canvas-hint {
-      margin-top: 8px;
       font-size: 0.7rem;
       color: var(--text-muted);
+      margin-top: 6px;
       text-align: center;
     }
 
-    .palette-card {
-      background: var(--card-bg);
-      padding: 12px;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border-color);
-      box-shadow: var(--shadow-md);
-      max-height: 540px;
+    /* Color Palette */
+    .palette-list {
       display: flex;
       flex-direction: column;
+      gap: 6px;
     }
 
-    .palette-card h3 {
-      font-size: 0.9rem;
-      font-weight: 700;
-      margin: 0 0 2px 0;
-    }
-
-    .palette-card .sub-text {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-
-    .palette-list {
-      overflow-y: auto;
-      flex-grow: 1;
-      padding-right: 4px;
-    }
-
-    .color-item {
+    .palette-item {
       display: flex;
       align-items: center;
       gap: 8px;
       padding: 6px 8px;
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
-      margin-bottom: 6px;
-      background: #ffffff;
+      background: #fff;
       cursor: pointer;
+      font-size: 0.75rem;
     }
 
-    .color-item.selected {
+    .palette-item.active {
       border-color: var(--primary-color);
-      background-color: var(--primary-light);
+      background: var(--primary-light);
       box-shadow: 0 0 0 1px var(--primary-color);
     }
 
-    .color-box {
-      width: 32px;
-      height: 32px;
-      border-radius: var(--radius-sm);
-      border: 1px solid rgba(0,0,0,0.1);
+    .swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      border: 1px solid rgba(0,0,0,0.15);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
       font-weight: bold;
-      flex-shrink: 0;
+      font-size: 11px;
     }
 
-    .color-info { flex-grow: 1; font-size: 0.7rem; }
-    .color-info strong { font-size: 0.75rem; color: var(--text-main); }
-
-    .dmc-select {
-      width: 100%;
-      margin-top: 2px;
-      font-size: 0.7rem;
-      padding: 3px;
-      border-radius: 4px;
-      border: 1px solid var(--border-color);
-      background-color: #fff;
+    .palette-info {
+      flex: 1;
     }
   </style>
 </head>
 <body>
 
-  <h1>🎨 刺繍図案ジェネレーター <span class="badge">線画・20マス最適化</span></h1>
+  <header>
+    <h1>✏️ 線画刺繍図案ジェネレーター <span class="tag">手描き・20マス最適化</span></h1>
+  </header>
 
-  <div class="control-panel">
-    <div class="control-group control-group-full">
-      <label for="upload">1. 画像を選択 (イラスト・線画)</label>
-      <input type="file" id="upload" accept="image/*">
+  <div class="app-container">
+    <!-- Left Panel: Controls -->
+    <div class="card">
+      <div class="card-title">⚙️ 図案の抽出設定</div>
+      
+      <div class="control-group">
+        <label for="upload">1. 手描き画像を選択</label>
+        <input type="file" id="upload" accept="image/*">
+      </div>
+
+      <div class="control-group">
+        <label for="gridWidth">2. 横マス数 <span id="gridWidthVal" class="val-badge">20</span></label>
+        <input type="range" id="gridWidth" min="10" max="40" value="20">
+      </div>
+
+      <div class="control-group">
+        <label class="toggle-row">
+          <input type="checkbox" id="lineArtMode" checked>
+          線画検出（手描き抽出）
+        </label>
+      </div>
+
+      <div class="control-group">
+        <label class="toggle-row">
+          <input type="checkbox" id="autoCrop" checked>
+          余白自動カット（イラスト拡大）
+        </label>
+      </div>
+
+      <div class="control-group">
+        <label for="lineThicken">線の太さ補正 <span id="lineThickenVal" class="val-badge">2</span></label>
+        <input type="range" id="lineThicken" min="0" max="5" value="2">
+      </div>
+
+      <div class="control-group">
+        <label for="threshold">線の濃さ感度 <span id="thresholdVal" class="val-badge">200</span></label>
+        <input type="range" id="threshold" min="80" max="240" value="200">
+      </div>
+
+      <div style="margin-top: 15px;">
+        <button id="downloadBtn" class="btn btn-primary" style="width: 100%;">💾 図案を画像保存 (PNG)</button>
+      </div>
     </div>
 
-    <div class="control-group">
-      <label for="gridWidth">2. 横マス数 <span id="gridWidthVal" class="val-label">20</span></label>
-      <input type="range" id="gridWidth" min="10" max="40" value="20">
-    </div>
-
-    <div class="control-group">
-      <label class="checkbox-label" for="autoCrop">
-        <input type="checkbox" id="autoCrop" checked>
-        余白を自動カット (主体拡大)
-      </label>
-    </div>
-
-    <div class="control-group">
-      <label for="lineThicken">線太らせ (膨張) <span id="lineThickenVal" class="val-label">2</span> px</label>
-      <input type="range" id="lineThicken" min="0" max="5" value="2">
-    </div>
-
-    <div class="control-group">
-      <label for="threshold">二値化 閾値 (線の検出) <span id="thresholdVal" class="val-label">180</span></label>
-      <input type="range" id="threshold" min="50" max="245" value="180">
-    </div>
-
-    <div class="control-group">
-      <label for="colorCount">最大色数 <span id="colorCountVal" class="val-label">2</span></label>
-      <input type="range" id="colorCount" min="2" max="10" value="2">
-    </div>
-
-    <div class="control-group control-group-full">
-      <button id="downloadBtn" class="btn btn-primary">図案を保存 (PNG)</button>
-    </div>
-  </div>
-
-  <div class="main-container">
-    <div class="canvas-card">
-      <div class="canvas-wrapper">
+    <!-- Center Panel: Canvas & Drawing Viewport -->
+    <div class="canvas-container">
+      <div class="canvas-viewport">
         <canvas id="canvas"></canvas>
       </div>
 
-      <div class="canvas-controls">
-        <button id="undoBtn" class="btn btn-secondary" disabled>↩ 戻す</button>
-        <button id="redoBtn" class="btn btn-secondary" disabled>↪ やり直し</button>
+      <div class="toolbar">
+        <button id="undoBtn" class="btn" disabled>↩ 戻す</button>
+        <button id="redoBtn" class="btn" disabled>↪ やり直し</button>
+        <button id="toolPen" class="btn tool-active">✏️ ドットペン</button>
+        <button id="toolEraser" class="btn">🧹 消しゴム</button>
       </div>
 
-      <div class="canvas-hint">💡 マス目をタップ/ドラッグで修正できます</div>
+      <div class="canvas-hint">💡 マス目をタップ・なぞって直接ドットの補正ができます</div>
     </div>
 
-    <div class="palette-card">
-      <h3>DMCカラーパレット</h3>
-      <div class="sub-text">選択中の色で図案のマス目を塗れます。</div>
-      <div id="paletteList" class="palette-list">画像を選択すると表示されます</div>
+    <!-- Right Panel: DMC Palette -->
+    <div class="card">
+      <div class="card-title">🎨 使用糸（DMC）</div>
+      <div id="paletteList" class="palette-list">
+        <!-- Palette elements generated by JS -->
+      </div>
     </div>
   </div>
 
   <script>
-    const SYMBOLS = ["★", "◆", "●", "▲", "♣", "♥", "♠", "♦", "■", "✖", "▼", "✚", "✱", "✿"];
+    // DMC Color Palette definition
+    const DMC_COLORS = {
+      BLACK: { code: "310", name: "Black", r: 0, g: 0, b: 0, hex: "#000000", symbol: "★" },
+      WHITE: { code: "BLANC", name: "White", r: 255, g: 255, b: 255, hex: "#FFFFFF", symbol: "・" }
+    };
 
-    const DMC_COLORS = [
-      { code: "310", r: 0, g: 0, b: 0, name: "Black" },
-      { code: "BLANC", r: 255, g: 255, b: 255, name: "White" },
-      { code: "ECRU", r: 240, g: 234, b: 218, name: "Ecru" },
-      { code: "666", r: 227, g: 29, b: 66, name: "Bright Red" },
-      { code: "321", r: 199, g: 0, b: 57, name: "Red" },
-      { code: "743", r: 255, g: 202, b: 58, name: "Yellow Medium" },
-      { code: "702", r: 70, g: 160, b: 70, name: "Kelly Green" },
-      { code: "796", r: 17, g: 68, b: 129, name: "Royal Blue Dark" },
-      { code: "433", r: 122, g: 69, b: 34, name: "Brown Medium" },
-      { code: "414", r: 140, g: 140, b: 140, name: "Steel Gray Dark" }
-    ];
-
-    const upload = document.getElementById('upload');
+    // DOM Elements
+    const uploadInput = document.getElementById('upload');
     const gridWidthInput = document.getElementById('gridWidth');
+    const lineArtModeInput = document.getElementById('lineArtMode');
     const autoCropInput = document.getElementById('autoCrop');
     const lineThickenInput = document.getElementById('lineThicken');
     const thresholdInput = document.getElementById('threshold');
-    const colorCountInput = document.getElementById('colorCount');
+
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    const paletteList = document.getElementById('paletteList');
-    const downloadBtn = document.getElementById('downloadBtn');
     const undoBtn = document.getElementById('undoBtn');
     const redoBtn = document.getElementById('redoBtn');
+    const toolPen = document.getElementById('toolPen');
+    const toolEraser = document.getElementById('toolEraser');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const paletteList = document.getElementById('paletteList');
 
-    let loadedImg = null;
-    let gridMatrix = [];
-    let activePalette = [];
-    let selectedPaletteIndex = 0;
-    let currentGridX = 20, currentGridY = 20;
-    const cellSize = 22;
+    // App State
+    let originalImage = null;
+    let gridMatrix = []; // Grid state: 1 for Black line, 0 for White background
+    let gridX = 20;
+    let gridY = 20;
+    const CELL_SIZE = 24; // Pixel size per cell on canvas
+    let currentTool = 'pen'; // 'pen' or 'eraser'
 
-    let history = [];
-    let currentIndex = -1;
-    let isMouseDown = false;
-    let hasPaintedInCurrentStroke = false;
+    // History stack for Undo / Redo
+    let historyStack = [];
+    let historyIndex = -1;
+    let isDrawing = false;
 
-    function saveState() {
-      if (!gridMatrix.length) return;
-      const state = {
-        gridMatrix: JSON.parse(JSON.stringify(gridMatrix)),
-        activePalette: JSON.parse(JSON.stringify(activePalette)),
-        currentGridX, currentGridY
-      };
-      if (currentIndex < history.length - 1) {
-        history = history.slice(0, currentIndex + 1);
-      }
-      history.push(state);
-      currentIndex++;
-      updateHistoryButtons();
-    }
-
-    function restoreState(index) {
-      if (index < 0 || index >= history.length) return;
-      const state = history[index];
-      gridMatrix = JSON.parse(JSON.stringify(state.gridMatrix));
-      activePalette = JSON.parse(JSON.stringify(state.activePalette));
-      currentGridX = state.currentGridX;
-      currentGridY = state.currentGridY;
-      renderCanvas();
-      updatePaletteUI();
-      updateHistoryButtons();
-    }
-
-    function updateHistoryButtons() {
-      undoBtn.disabled = currentIndex <= 0;
-      redoBtn.disabled = currentIndex >= history.length - 1;
-    }
-
-    undoBtn.addEventListener('click', () => { if (currentIndex > 0) { currentIndex--; restoreState(currentIndex); } });
-    redoBtn.addEventListener('click', () => { if (currentIndex < history.length - 1) { currentIndex++; restoreState(currentIndex); } });
-
+    // Event listeners for UI controls
     gridWidthInput.addEventListener('input', (e) => {
       document.getElementById('gridWidthVal').textContent = e.target.value;
-      if (loadedImg) processImage();
+      processImage();
     });
-    autoCropInput.addEventListener('change', () => { if (loadedImg) processImage(); });
     lineThickenInput.addEventListener('input', (e) => {
       document.getElementById('lineThickenVal').textContent = e.target.value;
-      if (loadedImg) processImage();
+      processImage();
     });
     thresholdInput.addEventListener('input', (e) => {
       document.getElementById('thresholdVal').textContent = e.target.value;
-      if (loadedImg) processImage();
+      processImage();
     });
-    colorCountInput.addEventListener('input', (e) => {
-      document.getElementById('colorCountVal').textContent = e.target.value;
-      if (loadedImg) processImage();
-    });
+    lineArtModeInput.addEventListener('change', processImage);
+    autoCropInput.addEventListener('change', processImage);
 
-    upload.addEventListener('change', (e) => {
+    uploadInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = (evt) => {
-        loadedImg = new Image();
-        loadedImg.onload = () => {
-          history = [];
-          currentIndex = -1;
+      reader.onload = (event) => {
+        originalImage = new Image();
+        originalImage.onload = () => {
+          historyStack = [];
+          historyIndex = -1;
           processImage();
         };
-        loadedImg.src = evt.target.result;
+        originalImage.src = event.target.result;
       };
       reader.readAsDataURL(file);
     });
 
     function processImage() {
-      currentGridX = parseInt(gridWidthInput.value, 10);
+      if (!originalImage) return;
+
+      gridX = parseInt(gridWidthInput.value, 10);
+      const isLineArt = lineArtModeInput.checked;
       const doAutoCrop = autoCropInput.checked;
       const thickenRadius = parseInt(lineThickenInput.value, 10);
-      const thresh = parseInt(thresholdInput.value, 10);
+      const threshold = parseInt(thresholdInput.value, 10);
 
-      // 高解像度キャンバス
-      const workCanvas = document.createElement('canvas');
-      const workCtx = workCanvas.getContext('2d');
-      workCanvas.width = loadedImg.width;
-      workCanvas.height = loadedImg.height;
-      workCtx.drawImage(loadedImg, 0, 0);
+      // Offscreen canvas for raw image processing
+      const origCanvas = document.createElement('canvas');
+      const origCtx = origCanvas.getContext('2d');
+      origCanvas.width = originalImage.width;
+      origCanvas.height = originalImage.height;
+      origCtx.drawImage(originalImage, 0, 0);
 
-      let imgData = workCtx.getImageData(0, 0, workCanvas.width, workCanvas.height);
-      let data = imgData.data;
+      const imgData = origCtx.getImageData(0, 0, origCanvas.width, origCanvas.height);
+      const pixels = imgData.data;
+      const w = origCanvas.width;
+      const h = origCanvas.height;
 
-      // 1. 自動トリミング（猫の周囲の白地カット）
-      let srcX = 0, srcY = 0, srcW = workCanvas.width, srcH = workCanvas.height;
+      // 1. Auto Bounding-Box Detection (Crop whitespace)
+      let cropX = 0, cropY = 0, cropW = w, cropH = h;
       if (doAutoCrop) {
-        let minX = srcW, minY = srcH, maxX = 0, maxY = 0;
+        let minX = w, minY = h, maxX = 0, maxY = 0;
         let found = false;
 
-        for (let y = 0; y < srcH; y++) {
-          for (let x = 0; x < srcW; x++) {
-            const idx = (y * srcW + x) * 4;
-            const gray = (data[idx] + data[idx+1] + data[idx+2]) / 3;
-            if (gray < thresh) { // 墨線を発見
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const idx = (y * w + x) * 4;
+            const luminance = (pixels[idx] * 299 + pixels[idx+1] * 587 + pixels[idx+2] * 114) / 1000;
+            if (luminance < threshold) {
               if (x < minX) minX = x;
               if (x > maxX) maxX = x;
               if (y < minY) minY = y;
@@ -503,45 +459,38 @@
         }
 
         if (found) {
-          // マージン付与
-          const margin = 10;
-          srcX = Math.max(0, minX - margin);
-          srcY = Math.max(0, minY - margin);
-          srcW = Math.min(workCanvas.width - srcX, (maxX - minX) + margin * 2);
-          srcH = Math.min(workCanvas.height - srcY, (maxY - minY) + margin * 2);
+          const padding = 8;
+          cropX = Math.max(0, minX - padding);
+          cropY = Math.max(0, minY - padding);
+          cropW = Math.min(w - cropX, (maxX - minX) + padding * 2);
+          cropH = Math.min(h - cropY, (maxY - minY) + padding * 2);
         }
       }
 
-      currentGridY = Math.max(8, Math.round(currentGridX * (srcH / srcW)));
+      // Calculate Grid Aspect Ratio
+      gridY = Math.max(8, Math.round(gridX * (cropH / cropW)));
 
-      // 2. 切り抜き後の画像を二値化 + 線太らせ (Dilation)
-      const croppedCanvas = document.createElement('canvas');
-      croppedCanvas.width = srcW;
-      croppedCanvas.height = srcH;
-      const croppedCtx = croppedCanvas.getContext('2d');
-      croppedCtx.drawImage(workCanvas, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
-
-      let croppedData = croppedCtx.getImageData(0, 0, srcW, srcH);
-      let pixels = croppedData.data;
-
-      // 二値化マップ
-      const binaryMap = new Uint8Array(srcW * srcH);
-      for (let i = 0; i < pixels.length; i += 4) {
-        const gray = (pixels[i] + pixels[i+1] + pixels[i+2]) / 3;
-        binaryMap[i / 4] = gray < thresh ? 1 : 0; // 1: 黒線, 0: 背景
+      // 2. High-resolution Binarization & Line Dilation (Thickening)
+      const binaryMap = new Uint8Array(cropW * cropH);
+      for (let y = 0; y < cropH; y++) {
+        for (let x = 0; x < cropW; x++) {
+          const srcIdx = ((cropY + y) * w + (cropX + x)) * 4;
+          const luminance = (pixels[srcIdx] * 299 + pixels[srcIdx+1] * 587 + pixels[srcIdx+2] * 114) / 1000;
+          binaryMap[y * cropW + x] = luminance < threshold ? 1 : 0; // 1 = Line (Dark), 0 = White
+        }
       }
 
-      // 線太らせ (Dilation)
-      const dilatedMap = new Uint8Array(srcW * srcH);
-      if (thickenRadius > 0) {
-        for (let y = 0; y < srcH; y++) {
-          for (let x = 0; x < srcW; x++) {
-            if (binaryMap[y * srcW + x] === 1) {
+      // Line Thicken Filter (Dilation)
+      const processedMap = new Uint8Array(cropW * cropH);
+      if (thickenRadius > 0 && isLineArt) {
+        for (let y = 0; y < cropH; y++) {
+          for (let x = 0; x < cropW; x++) {
+            if (binaryMap[y * cropW + x] === 1) {
               for (let dy = -thickenRadius; dy <= thickenRadius; dy++) {
                 for (let dx = -thickenRadius; dx <= thickenRadius; dx++) {
                   const nx = x + dx, ny = y + dy;
-                  if (nx >= 0 && nx < srcW && ny >= 0 && ny < srcH) {
-                    dilatedMap[ny * srcW + nx] = 1;
+                  if (nx >= 0 && nx < cropW && ny >= 0 && ny < cropH) {
+                    processedMap[ny * cropW + nx] = 1;
                   }
                 }
               }
@@ -549,99 +498,92 @@
           }
         }
       } else {
-        dilatedMap.set(binaryMap);
+        processedMap.set(binaryMap);
       }
 
-      // 加工データを書き戻し
-      for (let i = 0; i < dilatedMap.length; i++) {
-        const idx = i * 4;
-        const val = dilatedMap[i] === 1 ? 0 : 255;
-        pixels[idx] = val;
-        pixels[idx+1] = val;
-        pixels[idx+2] = val;
-      }
-      croppedCtx.putImageData(croppedData, 0, 0);
+      /* 3. Darkest Neighborhood Resampling to Grid Matrix
+         Ensure even thin lines survive in a 20x20 grid */
+      gridMatrix = Array.from({ length: gridY }, () => new Array(gridX).fill(0));
 
-      // 3. マス目（グリッド）へのダウンスケーリング
-      const gridCanvas = document.createElement('canvas');
-      gridCanvas.width = currentGridX;
-      gridCanvas.height = currentGridY;
-      const gridCtx = gridCanvas.getContext('2d');
-      gridCtx.imageSmoothingEnabled = true;
-      gridCtx.drawImage(croppedCanvas, 0, 0, currentGridX, currentGridY);
+      const cellW = cropW / gridX;
+      const cellH = cropH / gridY;
 
-      const gridData = gridCtx.getImageData(0, 0, currentGridX, currentGridY).data;
+      for (let gy = 0; gy < gridY; gy++) {
+        for (let gx = 0; gx < gridX; gx++) {
+          const startX = Math.floor(gx * cellW);
+          const endX = Math.ceil((gx + 1) * cellW);
+          const startY = Math.floor(gy * cellH);
+          const endY = Math.ceil((gy + 1) * cellH);
 
-      // 黒(310) と 白(BLANC) をデフォルトのパレットに
-      const blackDmc = DMC_COLORS.find(c => c.code === "310");
-      const whiteDmc = DMC_COLORS.find(c => c.code === "BLANC");
+          let darkPixelCount = 0;
+          let totalSamples = 0;
 
-      activePalette = [
-        { code: blackDmc.code, dmc: blackDmc, symbol: SYMBOLS[0], hex: "#000000" },
-        { code: whiteDmc.code, dmc: whiteDmc, symbol: SYMBOLS[1], hex: "#FFFFFF" }
-      ];
+          for (let py = startY; py < endY && py < cropH; py++) {
+            for (let px = startX; px < endX && px < cropW; px++) {
+              if (processedMap[py * cropW + px] === 1) {
+                darkPixelCount++;
+              }
+              totalSamples++;
+            }
+          }
 
-      gridMatrix = [];
-      for (let y = 0; y < currentGridY; y++) {
-        const row = [];
-        for (let x = 0; x < currentGridX; x++) {
-          const idx = (y * currentGridX + x) * 4;
-          const r = gridData[idx];
-          // 灰色領域は線画として黒に寄せる
-          const isLine = r < 200;
-          row.push(isLine ? blackDmc.code : whiteDmc.code);
+          // In LineArt Mode, if even a few dark pixels exist, trigger cell as line (1)
+          if (isLineArt) {
+            gridMatrix[gy][gx] = darkPixelCount > 0 ? 1 : 0;
+          } else {
+            gridMatrix[gy][gx] = (darkPixelCount / totalSamples) > 0.35 ? 1 : 0;
+          }
         }
-        gridMatrix.push(row);
       }
 
+      saveState();
       renderCanvas();
       updatePaletteUI();
-      saveState();
     }
 
     function renderCanvas() {
-      canvas.width = currentGridX * cellSize;
-      canvas.height = currentGridY * cellSize;
+      canvas.width = gridX * CELL_SIZE;
+      canvas.height = gridY * CELL_SIZE;
 
-      const paletteMap = {};
-      activePalette.forEach(p => paletteMap[p.code] = p);
+      // Draw Grid Cells
+      for (let y = 0; y < gridY; y++) {
+        for (let x = 0; x < gridX; x++) {
+          const isLine = gridMatrix[y][x] === 1;
+          const colorObj = isLine ? DMC_COLORS.BLACK : DMC_COLORS.WHITE;
 
-      for (let y = 0; y < currentGridY; y++) {
-        for (let x = 0; x < currentGridX; x++) {
-          const code = gridMatrix[y][x];
-          const item = paletteMap[code] || activePalette[0];
+          ctx.fillStyle = colorObj.hex;
+          ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 
-          ctx.fillStyle = item.hex;
-          ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-
-          const brightness = (item.dmc.r * 299 + item.dmc.g * 587 + item.dmc.b * 114) / 1000;
-          ctx.fillStyle = brightness > 125 ? '#000000' : '#ffffff';
-          ctx.font = '600 12px sans-serif';
+          // Render symbol for stitching
+          ctx.fillStyle = isLine ? '#FFFFFF' : '#94a3b8';
+          ctx.font = '600 11px sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(item.symbol, x * cellSize + cellSize / 2, y * cellSize + cellSize / 2);
+          ctx.fillText(colorObj.symbol, x * CELL_SIZE + CELL_SIZE / 2, y * CELL_SIZE + CELL_SIZE / 2);
         }
       }
 
-      // グリッド線描画
-      for (let x = 0; x <= currentGridX; x++) {
+      // Draw Grid Outline (Highlighting every 5th line)
+      for (let x = 0; x <= gridX; x++) {
         ctx.beginPath();
-        ctx.lineWidth = (x % 5 === 0) ? 1.2 : 0.3;
-        ctx.strokeStyle = (x % 5 === 0) ? '#334155' : '#cbd5e1';
-        ctx.moveTo(x * cellSize, 0); ctx.lineTo(x * cellSize, canvas.height);
+        ctx.lineWidth = (x % 5 === 0) ? 1.5 : 0.4;
+        ctx.strokeStyle = (x % 5 === 0) ? '#1e293b' : '#cbd5e1';
+        ctx.moveTo(x * CELL_SIZE, 0);
+        ctx.lineTo(x * CELL_SIZE, canvas.height);
         ctx.stroke();
       }
 
-      for (let y = 0; y <= currentGridY; y++) {
+      for (let y = 0; y <= gridY; y++) {
         ctx.beginPath();
-        ctx.lineWidth = (y % 5 === 0) ? 1.2 : 0.3;
-        ctx.strokeStyle = (y % 5 === 0) ? '#334155' : '#cbd5e1';
-        ctx.moveTo(0, y * cellSize); ctx.lineTo(canvas.width, y * cellSize);
+        ctx.lineWidth = (y % 5 === 0) ? 1.5 : 0.4;
+        ctx.strokeStyle = (y % 5 === 0) ? '#1e293b' : '#cbd5e1';
+        ctx.moveTo(0, y * CELL_SIZE);
+        ctx.lineTo(canvas.width, y * CELL_SIZE);
         ctx.stroke();
       }
     }
 
-    function getCanvasCoordinates(e) {
+    function getGridPos(e) {
       const rect = canvas.getBoundingClientRect();
       const scaleX = canvas.width / rect.width;
       const scaleY = canvas.height / rect.height;
@@ -649,119 +591,119 @@
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-      const canvasX = (clientX - rect.left) * scaleX;
-      const canvasY = (clientY - rect.top) * scaleY;
+      const x = Math.floor(((clientX - rect.left) * scaleX) / CELL_SIZE);
+      const y = Math.floor(((clientY - rect.top) * scaleY) / CELL_SIZE);
 
-      return {
-        x: Math.floor(canvasX / cellSize),
-        y: Math.floor(canvasY / cellSize)
-      };
+      return { x: Math.max(0, Math.min(gridX - 1, x)), y: Math.max(0, Math.min(gridY - 1, y)) };
     }
 
-    function paintCell(e) {
-      if (!gridMatrix.length || !activePalette.length) return;
-      const { x, y } = getCanvasCoordinates(e);
+    function applyEdit(e) {
+      if (!gridMatrix.length) return;
+      const { x, y } = getGridPos(e);
+      const targetVal = currentTool === 'pen' ? 1 : 0;
 
-      if (x >= 0 && x < currentGridX && y >= 0 && y < currentGridY) {
-        const targetCode = activePalette[selectedPaletteIndex].code;
-        if (gridMatrix[y][x] !== targetCode) {
-          gridMatrix[y][x] = targetCode;
-          hasPaintedInCurrentStroke = true;
-          renderCanvas();
-          updatePaletteUI();
-        }
+      if (gridMatrix[y][x] !== targetVal) {
+        gridMatrix[y][x] = targetVal;
+        renderCanvas();
+        updatePaletteUI();
       }
     }
 
-    const startPainting = (e) => {
-      isMouseDown = true;
-      hasPaintedInCurrentStroke = false;
-      paintCell(e);
-    };
+    canvas.addEventListener('mousedown', (e) => { isDrawing = true; applyEdit(e); });
+    canvas.addEventListener('mousemove', (e) => { if (isDrawing) applyEdit(e); });
+    window.addEventListener('mouseup', () => { if (isDrawing) { isDrawing = false; saveState(); } });
 
-    const drawPainting = (e) => {
-      if (isMouseDown) {
-        if (e.touches) e.preventDefault();
-        paintCell(e);
+    canvas.addEventListener('touchstart', (e) => { isDrawing = true; applyEdit(e); }, { passive: true });
+    canvas.addEventListener('touchmove', (e) => { if (isDrawing) applyEdit(e); }, { passive: true });
+    canvas.addEventListener('touchend', () => { if (isDrawing) { isDrawing = false; saveState(); } });
+
+    // Tool switching
+    toolPen.addEventListener('click', () => {
+      currentTool = 'pen';
+      toolPen.classList.add('tool-active');
+      toolEraser.classList.remove('tool-active');
+    });
+    toolEraser.addEventListener('click', () => {
+      currentTool = 'eraser';
+      toolEraser.classList.add('tool-active');
+      toolPen.classList.remove('tool-active');
+    });
+
+    function saveState() {
+      if (!gridMatrix.length) return;
+      const copy = gridMatrix.map(row => [...row]);
+      
+      if (historyIndex < historyStack.length - 1) {
+        historyStack = historyStack.slice(0, historyIndex + 1);
       }
-    };
-
-    const stopPainting = () => {
-      if (isMouseDown) {
-        isMouseDown = false;
-        if (hasPaintedInCurrentStroke) saveState();
-      }
-    };
-
-    canvas.addEventListener('mousedown', startPainting);
-    canvas.addEventListener('mousemove', drawPainting);
-    window.addEventListener('mouseup', stopPainting);
-
-    canvas.addEventListener('touchstart', startPainting, { passive: false });
-    canvas.addEventListener('touchmove', drawPainting, { passive: false });
-    canvas.addEventListener('touchend', stopPainting);
-
-    function updatePaletteUI() {
-      paletteList.innerHTML = '';
-      const counts = {};
-      gridMatrix.forEach(row => row.forEach(code => counts[code] = (counts[code] || 0) + 1));
-
-      activePalette.forEach((item, idx) => {
-        const count = counts[item.code] || 0;
-        const brightness = (item.dmc.r * 299 + item.dmc.g * 587 + item.dmc.b * 114) / 1000;
-        const textColor = brightness > 125 ? '#000' : '#fff';
-
-        const elem = document.createElement('div');
-        elem.className = `color-item ${idx === selectedPaletteIndex ? 'selected' : ''}`;
-        elem.onclick = (e) => {
-          if (e.target.tagName === 'SELECT') return;
-          selectedPaletteIndex = idx;
-          updatePaletteUI();
-        };
-
-        let optionsHtml = DMC_COLORS.map(c => 
-          `<option value="${c.code}" ${c.code === item.code ? 'selected' : ''}>DMC ${c.code} (${c.name})</option>`
-        ).join('');
-
-        elem.innerHTML = `
-          <div class="color-box" style="background-color: ${item.hex}; color: ${textColor}">
-            ${item.symbol}
-          </div>
-          <div class="color-info">
-            <strong>記号 [ ${item.symbol} ]</strong>
-            <div style="color:var(--text-muted);">使用数: <strong>${count}</strong> マス</div>
-            <select class="dmc-select" onchange="changePaletteDmc(${idx}, this.value)">
-              ${optionsHtml}
-            </select>
-          </div>
-        `;
-        paletteList.appendChild(elem);
-      });
+      historyStack.push({ grid: copy, gx: gridX, gy: gridY });
+      historyIndex++;
+      updateHistoryButtons();
     }
 
-    window.changePaletteDmc = function(paletteIdx, newDmcCode) {
-      const oldCode = activePalette[paletteIdx].code;
-      const newDmc = DMC_COLORS.find(c => c.code === newDmcCode);
-      if (!newDmc) return;
+    function updateHistoryButtons() {
+      undoBtn.disabled = historyIndex <= 0;
+      redoBtn.disabled = historyIndex >= historyStack.length - 1;
+    }
 
-      activePalette[paletteIdx].code = newDmc.code;
-      activePalette[paletteIdx].dmc = newDmc;
-      activePalette[paletteIdx].hex = rgbToHex(newDmc.r, newDmc.g, newDmc.b);
+    undoBtn.addEventListener('click', () => {
+      if (historyIndex > 0) {
+        historyIndex--;
+        restoreState(historyStack[historyIndex]);
+      }
+    });
 
-      gridMatrix = gridMatrix.map(row => row.map(code => code === oldCode ? newDmc.code : code));
+    redoBtn.addEventListener('click', () => {
+      if (historyIndex < historyStack.length - 1) {
+        historyIndex++;
+        restoreState(historyStack[historyIndex]);
+      }
+    });
 
+    function restoreState(state) {
+      gridMatrix = state.grid.map(row => [...row]);
+      gridX = state.gx;
+      gridY = state.gy;
       renderCanvas();
       updatePaletteUI();
-      saveState();
-    };
-
-    function rgbToHex(r, g, b) {
-      return "#" + [r, g, b].map(x => Math.round(x).toString(16).padStart(2, '0')).join('');
+      updateHistoryButtons();
     }
 
+    // Palette Usage Counter
+    function updatePaletteUI() {
+      if (!gridMatrix.length) return;
+      let blackCount = 0, whiteCount = 0;
+
+      gridMatrix.forEach(row => {
+        row.forEach(val => {
+          if (val === 1) blackCount++;
+          else whiteCount++;
+        });
+      });
+
+      paletteList.innerHTML = `
+        <div class="palette-item active">
+          <div class="swatch" style="background: #000; color: #fff;">★</div>
+          <div class="palette-info">
+            <strong>DMC 310 (黒線)</strong><br>
+            <span style="color: var(--text-muted); font-size: 0.7rem;">使用数: ${blackCount} マス</span>
+          </div>
+        </div>
+        <div class="palette-item">
+          <div class="swatch" style="background: #fff; color: #64748b;">・</div>
+          <div class="palette-info">
+            <strong>DMC BLANC (背景/白)</strong><br>
+            <span style="color: var(--text-muted); font-size: 0.7rem;">使用数: ${whiteCount} マス</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // Export image as PNG
     downloadBtn.addEventListener('click', () => {
+      if (!gridMatrix.length) return;
       const link = document.createElement('a');
-      link.download = 'cat_lineart_pattern.png';
+      link.download = 'embroidery_pattern.png';
       link.href = canvas.toDataURL();
       link.click();
     });
